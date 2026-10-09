@@ -221,6 +221,7 @@ export const APP_FEATURES: { key: string; label: string }[] = [
   { key: "shop", label: "Shop" }, { key: "fundraise", label: "Fundraise" }, { key: "invest", label: "Invest" }, { key: "groups", label: "Groups" },
   { key: "pos", label: "POS" }, { key: "payment_links", label: "Payment links" }, { key: "payouts", label: "Payouts" }, { key: "treasury_hub", label: "Treasury" },
   { key: "gov_hub", label: "Gov Hub" }, { key: "api_hub", label: "API Hub" }, { key: "register_customer", label: "Register customer" }, { key: "admin_panel", label: "Admin panel" },
+  { key: "modules", label: "Business modules" }, { key: "plans", label: "Plans & limits" }, { key: "organisation", label: "Organisation" },
 ];
 export const CONSOLE_ROLES = ["Personal", "Merchant", "Agent", "Treasury", "Institution", "NGO", "Group", "Other"];
 export const CONSOLE_TABS = ["overview", "transactions", "payouts", "merchants", "agents", "mandates", "grants", "members"];
