@@ -112,7 +112,23 @@ export async function markNotificationRead(id: string): Promise<void> {
 }
 
 export interface MyWallet { id: string; currency: string; provider: string | null; balance: number }
-export interface MyCard { id: string; brand: string; last4: string; type: string; locked: boolean }
+export interface MyCard {
+  id: string; brand: string; last4: string; type: string; locked: boolean;
+  tier: string; holder: string; expiry: string; network: string; currency: string; balance: number;
+  contactless: boolean; monthlySpend: number; monthlyLimit: number;
+}
+
+/** Opens an empty wallet in the chosen currency (migration 0065). Throws the database's message when it refuses. */
+export async function createMyWallet(userId: string, currency: string): Promise<void> {
+  const res = await supabase.rpc("create_my_wallet", { p_user_id: userId, p_currency: currency });
+  if (res.error) throw new Error(res.error.message);
+}
+
+/** Locks or unlocks one of the signed-in user's cards; the lock is stored in the database (migration 0065). */
+export async function setMyCardLocked(userId: string, cardId: string, locked: boolean): Promise<void> {
+  const res = await supabase.rpc("set_card_locked", { p_user_id: userId, p_card_id: cardId, p_locked: locked });
+  if (res.error) throw new Error(res.error.message);
+}
 
 export async function listMyWalletsAndCards(userId: string): Promise<{ wallets: MyWallet[]; cards: MyCard[] }> {
   const [w, c] = await Promise.all([
@@ -121,7 +137,12 @@ export async function listMyWalletsAndCards(userId: string): Promise<{ wallets: 
   ]);
   return {
     wallets: (w.data ?? []).map((r) => ({ id: r.id as string, currency: r.currency as string, provider: (r.provider as string) ?? null, balance: Number(r.balance_snapshot) })),
-    cards: (c.data ?? []).map((r) => ({ id: r.id as string, brand: r.brand as string, last4: r.last4 as string, type: r.type as string, locked: Boolean(r.locked) })),
+    cards: (c.data ?? []).map((r) => ({
+      id: r.id as string, brand: r.brand as string, last4: r.last4 as string, type: r.type as string, locked: Boolean(r.locked),
+      tier: (r.tier as string) ?? "", holder: (r.holder as string) ?? "", expiry: (r.expiry as string) ?? "", network: (r.network as string) ?? "",
+      currency: (r.currency as string) ?? "", balance: Number(r.balance ?? 0), contactless: Boolean(r.contactless),
+      monthlySpend: Number(r.monthly_spend ?? 0), monthlyLimit: Number(r.monthly_limit ?? 0),
+    })),
   };
 }
 

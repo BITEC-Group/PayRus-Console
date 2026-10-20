@@ -225,6 +225,8 @@ img { display: block; max-width: 100%; }
 .nav-brand { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 18px; margin-right: auto; }
 
 /* — tables — */
+/* tables scroll inside their frame, never the page (spec TCX-UI-01) */
+.table-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .table th {
   text-align: left;

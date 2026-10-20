@@ -117,8 +117,14 @@ export async function adminListPendingProfiles(): Promise<PendingProfile[]> {
   }));
 }
 
-export async function adminActivateProfile(roleId: string): Promise<void> {
-  const res = await supabase.rpc("admin_update_user_role", { p_role_id: roleId, p_status: "verified" });
+// PRS-ADM-005: activating a stuck profile is a recorded compliance override and needs a written reason.
+export async function adminActivateProfile(roleId: string, reason: string): Promise<void> {
+  const res = await supabase.rpc("admin_activate_profile", { p_role_id: roleId, p_reason: reason });
+  if (res.error?.code === "PGRST202") {
+    // migration 0067 not applied yet: fall back to the legacy activation
+    mustHaveData(await supabase.rpc("admin_update_user_role", { p_role_id: roleId, p_status: "verified" }), "adminActivateProfile");
+    return;
+  }
   mustHaveData(res, "adminActivateProfile");
 }
 

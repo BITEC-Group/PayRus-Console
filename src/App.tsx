@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import EnvBanner from "./components/EnvBanner";
 import type { Locale, Role } from "./types.ts";
 import { DESK } from "./i18n.ts";
 import { supabase } from "./lib/supabase-client.ts";
@@ -228,6 +229,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
+      <EnvBanner />
       <MfaStepUpHost locale={locale} />
       {stage === "landing" && (
         <Landing

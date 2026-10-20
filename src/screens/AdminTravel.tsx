@@ -48,7 +48,7 @@ export function TravelTab({ locale }: { locale: Locale }) {
   }, [tick]);
 
   const money = (amount: number, currency: string) => {
-    try { return new Intl.NumberFormat(locale, { style: "currency", currency, maximumFractionDigits: 2 }).format(amount); } catch { return `${amount.toFixed(2)} ${currency}`; }
+    try { return new Intl.NumberFormat(locale, { style: "currency", currency, currencyDisplay: "code", maximumFractionDigits: 2 }).format(amount); } catch { return `${amount.toFixed(2)} ${currency}`; }
   };
   const moneyMap = (m: Record<string, number>) => {
     const parts = Object.entries(m).map(([c, v]) => money(v, c));

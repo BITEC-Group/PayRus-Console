@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { describeTxError } from "../lib/txErrors.ts";
 import { requireStepUp } from "../lib/mfa.ts";
 import { mfaCopy } from "../components/Mfa.tsx";
 import type { Desk, Locale } from "../types.ts";
@@ -9,7 +10,6 @@ import {
 } from "../lib/p2p.ts";
 
 type Step = "search" | "amount" | "confirm" | "success";
-const errText = (e: unknown, fallback: string) => (e instanceof Error ? e.message.replace(/^[A-Za-z_]+: /, "") : fallback);
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 const hr = { borderTop: "1px solid var(--color-neutral-200, #E3E8EE)" } as const;
 
@@ -65,7 +65,7 @@ export function Send({ D, locale, setLocale, userId, onBack, onLogoClick, onNewR
       if (!found) setMessage(S.notFound.replace("{q}", q));
       else if (found.id === userId) setMessage(S.cannotSelf);
       else pick(found);
-    } catch (e) { setMessage(errText(e, S.failed)); } finally { setBusy(false); }
+    } catch (e) { setMessage(describeTxError(e, locale, S.failed)); } finally { setBusy(false); }
   };
 
   const onEnter = () => {
@@ -90,7 +90,7 @@ export function Send({ D, locale, setLocale, userId, onBack, onLogoClick, onNewR
       setStep("success");
       void searchMyCounterparts("", 5).then(setRecent).catch(() => undefined);
       void loadSendContext(userId).then(setCtx).catch(() => undefined);
-    } catch (e) { setMessage(errText(e, S.failed)); } finally { setBusy(false); }
+    } catch (e) { setMessage(describeTxError(e, locale, S.failed)); } finally { setBusy(false); }
   };
 
   const reset = () => { setStep("search"); setTo(null); setReceipt(null); setAmount(""); setNote(""); setQuery(""); setMessage(null); };

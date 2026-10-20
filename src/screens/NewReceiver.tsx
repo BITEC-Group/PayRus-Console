@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { describeTxError } from "../lib/txErrors.ts";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
 import { requireStepUp } from "../lib/mfa.ts";
@@ -20,7 +21,6 @@ const STATUS_CHIP: Record<PayoutRow["status"], ReturnType<typeof chip>> = {
   blocked: chip("#FBE0E4", "#A3243B"), cancelled: chip("#F1F4F7", "#4A5A6A"),
 };
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
-const errText = (e: unknown, fb: string) => (e instanceof Error ? e.message.replace(/^[A-Za-z_]+: /, "") : fb);
 const hr = { borderTop: "1px solid var(--color-neutral-200, #E3E8EE)" } as const;
 
 export function NewReceiver({ D, locale, setLocale, userId, onBack, onLogoClick, onSendToMember }: {
@@ -192,7 +192,7 @@ export function NewReceiver({ D, locale, setLocale, userId, onBack, onLogoClick,
       });
       setReceipt(r); setStep("success"); reloadLists();
       void loadSendContext(userId).then(setCtx).catch(() => undefined);
-    } catch (e) { setMessage(errText(e, R.failed)); } finally { setBusy(false); }
+    } catch (e) { setMessage(describeTxError(e, locale, R.failed)); } finally { setBusy(false); }
   };
 
   const goBack = step === "how" ? () => setStep("who") : step === "amount" ? () => setStep("how") : step === "confirm" ? () => setStep("amount") : onBack;

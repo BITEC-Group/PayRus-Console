@@ -165,6 +165,15 @@ export async function listRoleSlugs(): Promise<{ slug: string; isAdmin: boolean 
 }
 
 export async function updateRoleStatus(roleId: string, status: "incomplete" | "pending_verification" | "verified"): Promise<void> {
+  if (status === "verified") {
+    // PRS-ADM-005: activation is a recorded override with a written reason.
+    const reason = window.prompt("Compliance override - why is this profile being activated? (10+ characters)");
+    if (!reason || reason.trim().length < 10) throw new Error("A written reason (10+ characters) is required to activate a profile");
+    const res = await supabase.rpc("admin_activate_profile", { p_role_id: roleId, p_reason: reason.trim() });
+    if (res.error?.code === "PGRST202") done(await supabase.rpc("admin_update_user_role", { p_role_id: roleId, p_status: status }), "updateRoleStatus"); // 0067 not applied yet
+    else done(res, "updateRoleStatus");
+    return;
+  }
   done(await supabase.rpc("admin_update_user_role", { p_role_id: roleId, p_status: status }), "updateRoleStatus");
 }
 

@@ -257,7 +257,7 @@ export function LedgerTable({
   emptyText: string;
 }) {
   return (
-    <table className="table" style={{ marginTop: "var(--space-4)", width: "100%" }}>
+    <div className="table-scroll" style={{ marginTop: "var(--space-4)" }}><div className="table-scroll"><table className="table" style={{ width: "100%" }}>
       <thead>
         <tr>
           {cols.map((c) => (
@@ -293,7 +293,7 @@ export function LedgerTable({
           </tr>
         )}
       </tbody>
-    </table>
+    </table></div></div>
   );
 }
 

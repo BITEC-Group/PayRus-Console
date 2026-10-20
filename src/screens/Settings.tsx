@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
 import {
-  changePassword, exportMyData, getPreferredFxCurrency, listCurrencyCodes, listMyNotifications, listMyWalletsAndCards, loadFxSnapshot,
-  loadMyProfile, markNotificationRead, setPreferredFxCurrency, signOutOtherDevices, updateMyProfile,
+  changePassword, createMyWallet, exportMyData, getPreferredFxCurrency, listCurrencyCodes, listMyNotifications, listMyWalletsAndCards, loadFxSnapshot,
+  loadMyProfile, markNotificationRead, setMyCardLocked, setPreferredFxCurrency, signOutOtherDevices, updateMyProfile,
   type FxSnapshot, type MyCard, type MyNotification, type MyProfile, type MyWallet,
 } from "../lib/account.ts";
 import { MfaSettingsCard } from "../components/Mfa.tsx";
@@ -14,6 +14,7 @@ const LANGUAGES: { id: Locale; label: string }[] = [
   { id: "en", label: "English" }, { id: "fr", label: "Français" }, { id: "pt", label: "Português" }, { id: "es", label: "Español" },
 ];
 const fmt = (n: number) => n.toLocaleString(undefined, { maximumFractionDigits: n >= 100 ? 2 : 4 });
+const fmtMoney = (n: number, cur: string) => `${cur} ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // Console version of App/'s Settings menu (same seven sections). Everything
 // here acts on the signed-in account's real data — no decorative toggles.
@@ -32,10 +33,29 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
   const [wallets, setWallets] = useState<MyWallet[] | null>(null);
   const [cards, setCards] = useState<MyCard[]>([]);
   const [codes, setCodes] = useState<string[]>([]);
+  const [newWalletCurrency, setNewWalletCurrency] = useState("");
+  const [openCard, setOpenCard] = useState<string | null>(null);
   const [fxCurrency, setFxCurrency] = useState<string>(getPreferredFxCurrency() ?? "");
   const [fx, setFx] = useState<FxSnapshot | null>(null);
   const [tick, setTick] = useState(0);
   const reload = useCallback(() => setTick((n) => n + 1), []);
+
+  const addWallet = async () => {
+    if (!userId || !newWalletCurrency) return;
+    try {
+      await createMyWallet(userId, newWalletCurrency);
+      setNewWalletCurrency("");
+      setMessage(S.walletCreated);
+      reload();
+    } catch (e) {
+      const m = e instanceof Error ? e.message.toLowerCase() : "";
+      setMessage(m.includes("already have") ? S.walletExists : m.includes("at most 12") ? S.walletLimit : S.walletFailed);
+    }
+  };
+  const toggleCardLock = async (cardId: string, locked: boolean) => {
+    if (!userId) return;
+    try { await setMyCardLocked(userId, cardId, locked); reload(); } catch { setMessage(S.cardLockFailed); }
+  };
   const [follow, setFollow] = useState(getLocationFollow() === "on");
 
   const toggleFollow = async (on: boolean) => {
@@ -218,11 +238,46 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
                   <span>{w.provider ?? w.currency}</span><strong style={{ fontVariantNumeric: "tabular-nums" }}>{w.balance.toLocaleString()} {w.currency}</strong>
                 </div>
               ))}
+              {userId && (
+                <div style={{ display: "grid", gap: 6, marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border, #e5e9ee)" }} data-testid="add-wallet">
+                  <div className="text-muted" style={{ fontSize: 12 }}>{S.addWalletHint}</div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <select id="new-wallet-currency" className="input" aria-label={S.chooseCurrency} value={newWalletCurrency} onChange={(e) => setNewWalletCurrency(e.target.value)} style={{ maxWidth: 200 }}>
+                      <option value="">{S.chooseCurrency}</option>
+                      {codes.filter((code) => !(wallets ?? []).some((w) => w.currency === code)).map((code) => <option key={code} value={code}>{code}</option>)}
+                    </select>
+                    <button type="button" className="btn btn-primary" disabled={!newWalletCurrency} onClick={() => void addWallet()}>{S.openWallet}</button>
+                  </div>
+                </div>
+              )}
             </div>
             {cards.length > 0 && (
               <div className="card elev-sm" style={{ gap: 6 }}>
                 <div className="card-title">{S.cards}</div>
-                {cards.map((c) => <div key={c.id} style={{ display: "flex", justifyContent: "space-between" }}><span>{c.brand} •• {c.last4}</span><span className="text-muted">{c.type}{c.locked ? " · locked" : ""}</span></div>)}
+                {cards.map((c) => (
+                  <div key={c.id} style={{ display: "grid", gap: 6 }} data-testid="card-row">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                      <span>{c.brand} •• {c.last4}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span className="text-muted">{c.type}{c.locked ? " · " + S.lockCard : ""}</span>
+                        <button type="button" className="btn btn-ghost" aria-expanded={openCard === c.id} onClick={() => setOpenCard(openCard === c.id ? null : c.id)}>{openCard === c.id ? S.hideCardDetails : S.cardDetails}</button>
+                        {userId && <button type="button" className="btn btn-ghost" onClick={() => void toggleCardLock(c.id, !c.locked)}>{c.locked ? S.unlockCard : S.lockCard}</button>}
+                      </span>
+                    </div>
+                    {openCard === c.id && (
+                      <div data-testid="card-details" style={{ display: "grid", gap: 4, padding: 12, borderRadius: 10, background: "var(--color-neutral-100, #F1F4F7)", fontSize: 13 }}>
+                        <div style={{ fontFamily: "monospace", fontSize: 16, letterSpacing: 2 }}>•••• •••• •••• {c.last4}</div>
+                        <div className="text-muted" style={{ fontSize: 11 }}>{S.cardNumberNote}</div>
+                        {([[S.cardHolder, c.holder], [S.cardExpires, c.expiry], [S.cardNetwork, c.network], [S.cardCurrency, c.currency],
+                          [S.cardBalance, fmtMoney(c.balance, c.currency)], [S.cardContactless, c.contactless ? S.cardOn : S.cardOff],
+                          [S.cardStatus, c.locked ? S.lockCard : S.cardActive], [S.cardMonthlyLimit, fmtMoney(c.monthlyLimit, c.currency)],
+                          [S.cardSpent, fmtMoney(c.monthlySpend, c.currency)], [S.cardLeft, fmtMoney(Math.max(c.monthlyLimit - c.monthlySpend, 0), c.currency)]] as [string, string][]).map(([label, value]) => (
+                          <div key={label} style={{ display: "flex", justifyContent: "space-between", gap: 12 }}><span className="text-muted">{label}</span><strong>{value}</strong></div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -99,7 +99,9 @@ function PendingProfilesSection({ D }: { D: Desk }) {
     setActivatingId(roleId);
     setMessage(null);
     try {
-      await adminActivateProfile(roleId);
+      const reason = window.prompt("Compliance override - why is this profile being activated? (10+ characters)");
+      if (!reason || reason.trim().length < 10) { setMessage(C.activateFailed); return; }
+      await adminActivateProfile(roleId, reason.trim());
       setMessage(C.activated);
       load();
     } catch {
