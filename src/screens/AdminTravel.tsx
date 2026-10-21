@@ -4,6 +4,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Locale } from "../types.ts";
 import { errorText } from "../lib/adminStaff.ts";
+import { useT, type TX } from "../lib/extra-copy.tsx";
+
+// "10:55 · 10h 45m · economy" / "Accra, Ghana · 3★": the cabin class and the country name are stored in English
+const subtitleText = (tx: TX, s: string) =>
+  s.split(" · ").map((part) => { const i = part.lastIndexOf(", "); return i > 0 ? `${part.slice(0, i)}, ${tx(part.slice(i + 2))}` : tx(part); }).join(" · ");
 import {
   getTravelOverview, listTravelBookings, listTravelCatalog, listTravelReviews, setTravelActive, setTravelReviewHidden,
   type TravelBookingRow, type TravelCatalogRow, type TravelOverview, type TravelReviewRow,
@@ -30,6 +35,7 @@ const COPY: Record<Locale, Record<string, string>> = {
 
 export function TravelTab({ locale }: { locale: Locale }) {
   const C = COPY[locale] ?? COPY.en;
+  const tx = useT();
   const [overview, setOverview] = useState<TravelOverview | null>(null);
   const [bookings, setBookings] = useState<TravelBookingRow[] | null>(null);
   const [catalog, setCatalog] = useState<TravelCatalogRow[]>([]);
@@ -107,7 +113,7 @@ export function TravelTab({ locale }: { locale: Locale }) {
           <tbody>
             {catalog.map((c) => (
               <tr key={`${c.kind}:${c.id}`} style={{ borderTop: "1px solid var(--border, #ddd)" }}>
-                <td style={{ padding: 6 }}>{c.title}<div className="text-muted" style={{ fontSize: 11 }}>{c.kind === "flight" ? C.flight : C.hotel} · {c.subtitle}</div></td>
+                <td style={{ padding: 6 }}>{c.title}<div className="text-muted" style={{ fontSize: 11 }}>{c.kind === "flight" ? C.flight : C.hotel} · {subtitleText(tx, c.subtitle)}</div></td>
                 <td>{money(c.price, c.currency)}</td>
                 <td>{c.seatsLeft === null ? "—" : c.seatsLeft <= 3 ? <span className="tag tag-warning">{c.seatsLeft}</span> : c.seatsLeft}</td>
                 <td>{c.bookings}</td><td>{c.favorites}</td>
@@ -127,7 +133,7 @@ export function TravelTab({ locale }: { locale: Locale }) {
             <div key={r.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, opacity: r.hidden ? 0.55 : 1 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13 }}><strong>{r.userName}</strong> · {r.entity} · {"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)} {r.verified && <span className="tag tag-success">{C.verified}</span>} {r.hidden && <span className="tag tag-neutral">{C.hidden}</span>}</div>
-                <div className="text-muted" style={{ fontSize: 12 }}>{r.comment}</div>
+                <div className="text-muted" style={{ fontSize: 12 }}>{tx(r.comment)}</div>
               </div>
               <button type="button" className="btn btn-ghost" style={{ whiteSpace: "nowrap" }} onClick={() => void run(() => setTravelReviewHidden(r.id, !r.hidden))}>{r.hidden ? C.unhide : C.hide}</button>
             </div>

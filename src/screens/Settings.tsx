@@ -158,7 +158,7 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
                 </div>
                 <div><button type="button" className="btn btn-primary" onClick={() => void saveProfile()}>{S.save}</button></div>
                 {row(S.email, profile.email)}{row(S.username, profile.username ? `@${profile.username}` : null)}
-                {row(S.country, profile.country)}{row(S.currency, profile.defaultCurrency)}{row(S.kyc, profile.kycStatus)}
+                {row(S.country, profile.country)}{row(S.currency, profile.defaultCurrency)}{row(S.kyc, tx(profile.kycStatus))}
                 {row(S.roles, profile.roles.map((r) => `${roleLabel(tx, r.role)} (${tx(r.status.replace("_", " "))})`).join(", ") || null)}
               </>
             )}
