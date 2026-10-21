@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { LedgerRow, Locale, Position, QueueItem, QueueText } from "../types.ts";
 import { STATE_CLS } from "../data.ts";
 import { LOCALES } from "../i18n.ts";
+import { useT } from "../lib/extra-copy.tsx";
 
 export function BackButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
@@ -231,6 +232,7 @@ export function KpiTile({
 }
 
 export function BarChart({ bars }: { bars: { label: string; h: string; fill: string; value: string }[] }) {
+  const tx = useT(); // bar labels come from the database in English
   return (
     <div style={{ display: "flex", alignItems: "stretch", gap: "var(--space-3)", marginTop: "var(--space-4)" }}>
       {bars.map((b) => (
@@ -241,7 +243,7 @@ export function BarChart({ bars }: { bars: { label: string; h: string; fill: str
           <div style={{ height: 170, display: "flex", alignItems: "flex-end" }}>
             <div style={{ width: "100%", flex: "0 0 auto", minHeight: 0, height: b.h, background: b.fill, borderRadius: "var(--radius-sm)" }} />
           </div>
-          <div style={{ fontSize: 13, color: "var(--color-neutral-700)", textAlign: "center", lineHeight: 1.25 }}>{b.label}</div>
+          <div style={{ fontSize: 13, color: "var(--color-neutral-700)", textAlign: "center", lineHeight: 1.25 }}>{tx(b.label)}</div>
         </div>
       ))}
     </div>
@@ -259,6 +261,7 @@ export function LedgerTable({
   states: Record<string, string>;
   emptyText: string;
 }) {
+  const tx = useT(); // row text (name, meta, corridor, rail) comes from the database in English
   return (
     <div className="table-scroll" style={{ marginTop: "var(--space-4)" }}><div className="table-scroll"><table className="table" style={{ width: "100%" }}>
       <thead>
@@ -274,11 +277,11 @@ export function LedgerTable({
         {rows.map((r, i) => (
           <tr key={r.name + i}>
             <td>
-              <div style={{ fontWeight: 600 }}>{r.name}</div>
-              <div style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>{r.meta}</div>
+              <div style={{ fontWeight: 600 }}>{tx(r.name)}</div>
+              <div style={{ fontSize: 13, color: "var(--color-neutral-600)" }}>{tx(r.meta)}</div>
             </td>
-            <td style={{ whiteSpace: "nowrap" }}>{r.corridor}</td>
-            <td>{r.rail}</td>
+            <td style={{ whiteSpace: "nowrap" }}>{tx(r.corridor)}</td>
+            <td>{tx(r.rail)}</td>
             <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>{r.amount}</td>
             <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", color: "var(--color-neutral-600)" }}>
               {r.fee}

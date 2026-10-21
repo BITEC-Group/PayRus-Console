@@ -1,4 +1,5 @@
 import { useT } from "../lib/extra-copy";
+import { roleLabel } from "../lib/roleLabel.ts";
 import { useCallback, useEffect, useState } from "react";
 import type { AdminPageCopy, Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -197,14 +198,14 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
                       {u.roles.map((r) => perms?.users.update ? (
                         <span key={r.id} style={{ ...chip("#E7EEF7", "#1D3F6B"), display: "inline-flex", gap: 4, alignItems: "center" }}>
-                          {r.role.replace("_", " ")}
-                          <select aria-label={`${A.roleStatus}: ${r.role}`} value={r.status} style={{ font: "inherit", border: 0, background: "transparent", color: "inherit" }}
+                          {roleLabel(tx, r.role)}
+                          <select aria-label={`${A.roleStatus}: ${roleLabel(tx, r.role)}`} value={r.status} style={{ font: "inherit", border: 0, background: "transparent", color: "inherit" }}
                             onChange={(e) => void run(() => updateRoleStatus(r.id, e.target.value as "incomplete" | "pending_verification" | "verified"), A.saved)}>
                             <option value="incomplete">{tx("incomplete")}</option><option value="pending_verification">{tx("pending verification")}</option><option value="verified">{tx("verified")}</option>
                           </select>
                         </span>
-                      ) : <span key={r.id} style={chip("#E7EEF7", "#1D3F6B")}>{r.role.replace("_", " ")} · {r.status.replace("_", " ")}</span>)}
-                      <span style={chip("#F1F4F7", "#4A5A6A")}>{tx("KYC")} {u.kycStatus}</span>
+                      ) : <span key={r.id} style={chip("#E7EEF7", "#1D3F6B")}>{roleLabel(tx, r.role)} · {tx(r.status.replace("_", " "))}</span>)}
+                      <span style={chip("#F1F4F7", "#4A5A6A")}>{tx("KYC")} {tx(u.kycStatus)}</span>
                     </div>
                     {u.wallets.length > 0 && <div className="text-muted" style={{ fontSize: 12, marginTop: 4 }}>{A.walletsLabel}: {u.wallets.map((w) => `${w.balance.toLocaleString()} ${w.currency}`).join(" · ")}</div>}
                   </div>
@@ -324,7 +325,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                       const bypass = role.slug === "superadmin";
                       return (
                         <tr key={`${role.slug}:${resource}`} style={{ borderTop: "1px solid var(--color-neutral-200, #E3E8EE)" }}>
-                          <td style={{ padding: 6, fontWeight: 600 }} title={role.description}>{resource === "transactions" ? role.label : ""}</td>
+                          <td style={{ padding: 6, fontWeight: 600 }} title={role.description}>{resource === "transactions" ? tx(role.label) : ""}</td>
                           <td style={{ padding: 6 }} className="text-muted">{resource}</td>
                           {ACTIONS.map((action) => {
                             const locked = LOCKED_CELLS.has(`${resource}:${action}`) || action === "delete";
@@ -361,7 +362,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                     {(users ?? []).map((u) => <option key={u.id} value={u.id}>{label(u)}{u.email ? ` (${u.email})` : ""}</option>)}
                   </select>
                   <select className="input" aria-label={A.roleLabel} value={assignRole} onChange={(e) => setAssignRole(e.target.value)}>
-                    {roles.map((r) => <option key={r.slug} value={r.slug}>{r.label}</option>)}
+                    {roles.map((r) => <option key={r.slug} value={r.slug}>{tx(r.label)}</option>)}
                   </select>
                   <button type="button" className="btn btn-primary" disabled={!assignUser} onClick={() => { const p = window.prompt(A.passwordPrompt); if (p !== null) void run(() => assignStaffRole(assignUser, assignRole, p), A.assign); }}>{A.assign}</button>
                 </div>
@@ -373,7 +374,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
               {staffRows.length === 0 && <div className="text-muted">{A.empty}</div>}
               {staffRows.map(({ user, role }) => (
                 <div key={`${user.id}:${role}`} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-                  <span><strong>{label(user)}</strong> <span className="text-muted">· {roles.find((r) => r.slug === role)?.label ?? role}</span></span>
+                  <span><strong>{label(user)}</strong> <span className="text-muted">· {tx(roles.find((r) => r.slug === role)?.label ?? role)}</span></span>
                   {isSuper && <button type="button" className="btn btn-ghost" onClick={() => { const p = window.prompt(A.passwordPrompt); if (p !== null) void run(() => revokeStaffRole(user.id, role, p), A.revoke); }}>{A.revoke}</button>}
                 </div>
               ))}

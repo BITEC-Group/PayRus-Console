@@ -1,4 +1,5 @@
 import { useT } from "../lib/extra-copy";
+import { roleLabel } from "../lib/roleLabel.ts";
 import { useEffect, useState } from "react";
 import type { AdminPageCopy } from "../types.ts";
 import {
@@ -61,7 +62,7 @@ function CheckGrid({ items, checked, onToggle }: { items: { key: string; label: 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 6 }}>
       {items.map((i) => (
-        <label key={i.key} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13, textTransform: "capitalize" }}>
+        <label key={i.key} style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 13 }}>
           <input type="checkbox" checked={checked.has(i.key)} onChange={() => onToggle(i.key)} /> {i.label}
         </label>
       ))}
@@ -70,6 +71,7 @@ function CheckGrid({ items, checked, onToggle }: { items: { key: string; label: 
 }
 
 export function AccessTab({ A, users, notify, reload }: { A: AdminPageCopy; users: StaffUser[]; notify: Notify; reload: () => void }) {
+  const tx = useT(); // feature, role and tab names are stored in English
   const [slugs, setSlugs] = useState<string[]>([]);
   const [profileType, setProfileType] = useState("personal");
   const [features, setFeatures] = useState<Set<string> | null>(null);
@@ -100,9 +102,9 @@ export function AccessTab({ A, users, notify, reload }: { A: AdminPageCopy; user
         <div className="card-title">{A.accessFeaturesTitle}</div>
         <p className="card-body">{A.accessFeaturesNote}</p>
         <select className="input" aria-label={A.accessFeaturesTitle} style={{ width: "auto" }} value={profileType} onChange={(e) => setProfileType(e.target.value)}>
-          {slugs.map((s) => <option key={s} value={s}>{s}</option>)}
+          {slugs.map((s) => <option key={s} value={s}>{roleLabel(tx, s)}</option>)}
         </select>
-        {features === null ? <div className="tag tag-neutral">{A.loading}</div> : <CheckGrid items={APP_FEATURES} checked={features} onToggle={(k) => toggle(features, setFeatures, k)} />}
+        {features === null ? <div className="tag tag-neutral">{A.loading}</div> : <CheckGrid items={APP_FEATURES.map((f) => ({ key: f.key, label: tx(f.label) }))} checked={features} onToggle={(k) => toggle(features, setFeatures, k)} />}
         <div><button type="button" className="btn btn-primary" disabled={!features} onClick={() => void guarded((p) => setProfileFeatures(profileType, [...(features ?? [])], p), A.saved)}>{A.gateChange}</button></div>
       </div>
 
@@ -110,9 +112,9 @@ export function AccessTab({ A, users, notify, reload }: { A: AdminPageCopy; user
         <div className="card-title">{A.accessConsoleTitle}</div>
         <p className="card-body">{A.accessConsoleNote}</p>
         <select className="input" aria-label={A.accessConsoleTitle} style={{ width: "auto" }} value={role} onChange={(e) => setRole(e.target.value)}>
-          {CONSOLE_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+          {CONSOLE_ROLES.map((r) => <option key={r} value={r}>{tx(r)}</option>)}
         </select>
-        {tabs === null ? <div className="tag tag-neutral">{A.loading}</div> : <CheckGrid items={CONSOLE_TABS.map((t) => ({ key: t, label: t }))} checked={tabs} onToggle={(k) => toggle(tabs, setTabs, k)} />}
+        {tabs === null ? <div className="tag tag-neutral">{A.loading}</div> : <CheckGrid items={CONSOLE_TABS.map((t) => ({ key: t, label: tx(t.replace(/^./, (c) => c.toUpperCase())) }))} checked={tabs} onToggle={(k) => toggle(tabs, setTabs, k)} />}
         <div><button type="button" className="btn btn-primary" disabled={!tabs} onClick={() => void guarded((p) => setConsoleTabs(role, [...(tabs ?? [])], p), A.saved)}>{A.gateChange}</button></div>
       </div>
 
@@ -133,7 +135,7 @@ export function AccessTab({ A, users, notify, reload }: { A: AdminPageCopy; user
                 {managing === r.id && (
                   <>
                     <select className="input" aria-label={A.reassign} style={{ width: "auto" }} value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-                      {slugs.map((s) => <option key={s} value={s}>{s}</option>)}
+                      {slugs.map((s) => <option key={s} value={s}>{roleLabel(tx, s)}</option>)}
                     </select>
                     <button type="button" className="btn btn-primary" disabled={!pw} onClick={() => void guarded((p) => reassignRole(r.id, newRole, p), A.reassign)}>{A.reassign}</button>
                     <button type="button" className="btn btn-ghost" disabled={!pw} onClick={() => void guarded((p) => removeRole(r.id, p), A.remove)}>{A.remove}</button>
