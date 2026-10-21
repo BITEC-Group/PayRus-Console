@@ -1,5 +1,6 @@
 import { useT } from "../lib/extra-copy";
 import { roleLabel } from "../lib/roleLabel.ts";
+import { auditActionText, auditActorText, auditReasonText, auditTableText } from "../lib/dbText.ts";
 import { useEffect, useState } from "react";
 import type { AdminPageCopy } from "../types.ts";
 import {
@@ -15,6 +16,7 @@ const short = (v: unknown) => {
 };
 
 export function AuditTab({ A }: { A: AdminPageCopy }) {
+  const tx = useT();
   const TABLES = ["", "user_roles", "users", "transfers", "support_escalations", "support_permissions", "gate_passwords", "profile_features", "console_role_tabs", "fx_margin_config", "expense_reports"];
   const [table, setTable] = useState("");
   const [events, setEvents] = useState<AuditEvent[] | null>(null);
@@ -30,7 +32,7 @@ export function AuditTab({ A }: { A: AdminPageCopy }) {
     <div style={{ display: "grid", gap: "var(--space-3)" }}>
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <select className="input" aria-label={A.tabAudit} style={{ width: "auto" }} value={table} onChange={(e) => setTable(e.target.value)}>
-          {TABLES.map((t) => <option key={t} value={t}>{t || A.allTables}</option>)}
+          {TABLES.map((t) => <option key={t} value={t}>{t ? auditTableText(tx, t) : A.allTables}</option>)}
         </select>
         <span className="text-muted" style={{ fontSize: 12 }}>{A.auditNote}</span>
       </div>
@@ -41,10 +43,10 @@ export function AuditTab({ A }: { A: AdminPageCopy }) {
         <div key={e.seq} className="card elev-sm" style={{ gap: 4 }}>
           <button type="button" onClick={() => setOpen(open === e.seq ? null : e.seq)} style={{ all: "unset", cursor: "pointer", display: "grid", gap: 2 }}>
             <span style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-              <strong style={{ fontFamily: "monospace", fontSize: 13 }}>{e.action}</strong>
+              <strong style={{ fontSize: 13 }} title={e.action}>{auditActionText(tx, e.action)}</strong>
               <span className="text-muted" style={{ fontSize: 12 }}>{new Date(e.occurredAt).toLocaleString()}</span>
             </span>
-            <span className="text-muted" style={{ fontSize: 12 }}>{e.actorName ?? e.actorEmail ?? e.actorLabel}{e.reason ? ` · ${e.reason}` : ""}</span>
+            <span className="text-muted" style={{ fontSize: 12 }}>{e.actorName ?? e.actorEmail ?? auditActorText(tx, e.actorLabel)}{e.reason ? ` · ${auditReasonText(tx, e.reason)}` : ""}</span>
           </button>
           {open === e.seq && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 8, fontFamily: "monospace", fontSize: 11 }}>
@@ -130,7 +132,7 @@ export function AccessTab({ A, users, notify, reload }: { A: AdminPageCopy; user
             <strong>{u.name ?? u.email ?? u.id}</strong>
             {u.roles.map((r) => (
               <div key={r.id} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginTop: 4 }}>
-                <span style={{ minWidth: 140, textTransform: "capitalize" }}>{r.role.replace("_", " ")}</span>
+                <span style={{ minWidth: 140 }}>{roleLabel(tx, r.role)}</span>
                 <button type="button" className="btn btn-ghost" onClick={() => { setManaging(managing === r.id ? null : r.id); setNewRole(r.role); }}>{A.manage}</button>
                 {managing === r.id && (
                   <>

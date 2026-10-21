@@ -1,5 +1,6 @@
 import { useT } from "../lib/extra-copy";
 import { roleLabel } from "../lib/roleLabel.ts";
+import { noteText, wordText } from "../lib/dbText.ts";
 import { useCallback, useEffect, useState } from "react";
 import type { AdminPageCopy, Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -258,11 +259,11 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 13 }}>{t.reference}</div>
-                    <div className="text-muted" style={{ fontSize: 12 }}>{label(t)} · {t.type}{t.note ? ` · ${t.note}` : ""} · {new Date(t.createdAt).toLocaleString()}</div>
+                    <div className="text-muted" style={{ fontSize: 12 }}>{label(t)} · {wordText(tx, t.type)}{t.note ? ` · ${noteText(tx, t.note)}` : ""} · {new Date(t.createdAt).toLocaleString()}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontWeight: 700 }}>{t.amount.toLocaleString()} {t.currency}</div>
-                    <span style={STATE_CHIP[t.state] ?? chip("#F1F4F7", "#4A5A6A")}>{t.state.replace("_", " ")}</span>
+                    <span style={STATE_CHIP[t.state] ?? chip("#F1F4F7", "#4A5A6A")}>{wordText(tx, t.state)}</span>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -316,7 +317,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                   <thead>
                     <tr style={{ textAlign: "left" }}>
                       <th style={{ padding: 6 }}>{A.roleLabel}</th><th style={{ padding: 6 }}></th>
-                      {ACTIONS.map((a) => <th key={a} style={{ padding: 6, textAlign: "center" }}>{a}</th>)}
+                      {ACTIONS.map((a) => <th key={a} style={{ padding: 6, textAlign: "center" }}>{tx(a)}</th>)}
                     </tr>
                   </thead>
                   <tbody>
@@ -326,7 +327,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                       return (
                         <tr key={`${role.slug}:${resource}`} style={{ borderTop: "1px solid var(--color-neutral-200, #E3E8EE)" }}>
                           <td style={{ padding: 6, fontWeight: 600 }} title={role.description}>{resource === "transactions" ? tx(role.label) : ""}</td>
-                          <td style={{ padding: 6 }} className="text-muted">{resource}</td>
+                          <td style={{ padding: 6 }} className="text-muted">{tx(resource)}</td>
                           {ACTIONS.map((action) => {
                             const locked = LOCKED_CELLS.has(`${resource}:${action}`) || action === "delete";
                             const checked = bypass ? !LOCKED_CELLS.has(`${resource}:${action}`) : Boolean(cell?.[action]);

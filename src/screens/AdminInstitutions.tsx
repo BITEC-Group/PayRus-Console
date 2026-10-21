@@ -7,6 +7,12 @@ import { useEffect, useState } from "react";
 import type { Locale } from "../types.ts";
 import { errorText } from "../lib/adminStaff.ts";
 import { useT } from "../lib/extra-copy.tsx";
+
+// module_key -> its English name (stored in English by the database; shown through tx())
+const MODULE_NAME: Record<string, string> = {
+  invoicing: "Invoicing & billing", payroll: "Payroll", grants: "Donors & grants", pension: "Pension management", microfinance: "Microfinance",
+  sacco: "SACCO & cooperative", insurance: "Insurance operations", fund: "Investment fund", devfinance: "Development finance", revenue: "Tax & revenue", procurement: "Procurement",
+};
 import { getWebhookOverview, listWebhookFailures, type WebhookFailure, type WebhookOverview } from "../lib/webhooks.ts";
 import { getPlanDistribution, getTeamOverview, type PlanCount, type TeamOverview } from "../lib/plans.ts";
 import { getInstHealth, listInstOverview, listSubProfileStats, type InstHealth, type InstOverviewRow, type SubProfileStat } from "../lib/institutions.ts";
@@ -101,7 +107,7 @@ export function InstitutionsTab({ locale }: { locale: Locale }) {
               {([["individual", C.plansPeople], ["business", C.plansBusiness]] as const).map(([fam, title]) => (
                 <div key={fam} style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
                   <span className="text-muted" style={{ fontSize: 12, minWidth: 130 }}>{title}</span>
-                  {plans.filter((p) => p.family === fam).map((p) => <span key={p.plan} className="tag">{p.label}: {p.accounts}</span>)}
+                  {plans.filter((p) => p.family === fam).map((p) => <span key={p.plan} className="tag">{tx(p.label)}: {p.accounts}</span>)}
                 </div>
               ))}
             </div>
@@ -140,7 +146,7 @@ export function InstitutionsTab({ locale }: { locale: Locale }) {
             <tbody>
               {active.map((r) => (
                 <tr key={r.kind} style={{ borderTop: "1px solid var(--border, #ddd)" }}>
-                  <td style={{ padding: 6 }}><strong>{tx(r.kindLabel)}</strong><div className="text-muted" style={{ fontSize: 11 }}>{r.moduleKey}</div></td>
+                  <td style={{ padding: 6 }}><strong>{tx(r.kindLabel)}</strong><div className="text-muted" style={{ fontSize: 11 }}>{tx(MODULE_NAME[r.moduleKey] ?? r.moduleKey)}</div></td>
                   <td>{r.owners}</td><td>{r.records}</td><td>{num(r.totalAmount)}</td><td>{num(r.openAmount)}</td><td>{num(r.settledAmount)}</td>
                   <td>{r.awaitingApproval > 0 ? <span className="tag tag-warning">{r.awaitingApproval}</span> : 0}</td>
                   <td>{r.stuckOver7d > 0 ? <span className="tag tag-warning">{r.stuckOver7d}</span> : 0}</td>

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { useT } from "../lib/extra-copy.tsx";
+import { actionText, triageRationaleText, triageReplyText, triageSummaryText, wordText } from "../lib/dbText.ts";
 import type { AdminPageCopy } from "../types.ts";
 import {
   errorText, listAiSuggestions, listEscalations, markAiSuggestion, resolveEscalation, runTriage,
@@ -18,6 +20,7 @@ const MIN_REASON = 5;
 function SuggestionBox({ A, s, canAnalyze, busy, onAnalyse, onUseReply }: {
   A: AdminPageCopy; s: AiSuggestion | undefined; canAnalyze: boolean; busy: boolean; onAnalyse: () => void; onUseReply?: () => void;
 }) {
+  const tx = useT(); // rules-based suggestions are written in English by the database
   const action = { approve: A.aiActApprove, reject: A.aiActReject, request_info: A.aiActInfo };
   return (
     <div style={{ display: "grid", gap: 6, padding: 12, borderRadius: 10, background: "var(--color-neutral-100, #F1F4F7)" }}>
@@ -32,15 +35,15 @@ function SuggestionBox({ A, s, canAnalyze, busy, onAnalyse, onUseReply }: {
       {s && (
         <>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <span style={PRIORITY_CHIP[s.priority]}>{s.priority.toUpperCase()}</span>
-            <span style={chip("#F1F4F7", "#4A5A6A")}>{s.category.replace(/_/g, " ")}</span>
+            <span style={PRIORITY_CHIP[s.priority]}>{wordText(tx, s.priority).toUpperCase()}</span>
+            <span style={chip("#F1F4F7", "#4A5A6A")}>{wordText(tx, s.category)}</span>
             <span style={chip("#E7EEF7", "#1D3F6B")}>{A.aiSuggests}: {action[s.recommendedAction]} · {Math.round(s.confidence * 100)}%</span>
           </div>
-          <div style={{ fontWeight: 600, fontSize: 13 }}>{s.summary}</div>
-          <div className="text-muted" style={{ fontSize: 12 }}>{s.rationale}</div>
+          <div style={{ fontWeight: 600, fontSize: 13 }}>{s.source === "rules" ? triageSummaryText(tx, s.summary) : s.summary}</div>
+          <div className="text-muted" style={{ fontSize: 12 }}>{s.source === "rules" ? triageRationaleText(tx, s.rationale) : s.rationale}</div>
           <div style={{ fontSize: 12, padding: "8px 10px", borderRadius: 8, background: "var(--color-bg, #fff)", border: "1px solid var(--color-neutral-200, #E3E8EE)" }}>
             <div className="text-muted" style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>{A.aiDraftReply}</div>
-            {s.draftReply}
+            {s.source === "rules" ? triageReplyText(tx, s.draftReply) : s.draftReply}
           </div>
           {onUseReply && <div><button type="button" className="btn btn-ghost" onClick={onUseReply}>{A.aiUseReply}</button></div>}
         </>
@@ -52,6 +55,7 @@ function SuggestionBox({ A, s, canAnalyze, busy, onAnalyse, onUseReply }: {
 function Case({ A, e, suggestion, perms, notify, reload }: {
   A: AdminPageCopy; e: StaffEscalation; suggestion: AiSuggestion | undefined; perms: MyPermissions | null; notify: (m: string) => void; reload: () => void;
 }) {
+  const tx = useT();
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [analysing, setAnalysing] = useState(false);
@@ -100,12 +104,12 @@ function Case({ A, e, suggestion, perms, notify, reload }: {
     <div className="card elev-sm" style={{ gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
         <div>
-          <div className="card-title" style={{ textTransform: "capitalize" }}>{e.action.replace("_", " ")}{e.amount != null ? ` · ${e.amount.toLocaleString()} ${e.currency ?? ""}` : ""}</div>
+          <div className="card-title">{actionText(tx, e.action)}{e.amount != null ? ` · ${e.amount.toLocaleString()} ${e.currency ?? ""}` : ""}</div>
           <div className="text-muted" style={{ fontSize: 12 }}>{e.targetName ?? e.targetEmail ?? "—"}{e.transferReference ? ` · ${e.transferReference}` : ""} · {e.requesterName ?? "—"} · {new Date(e.createdAt).toLocaleString()}</div>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
-          {suggestion && <span style={PRIORITY_CHIP[suggestion.priority]}>{suggestion.priority.toUpperCase()}</span>}
-          <span style={STATUS_CHIP[e.status] ?? chip("#F1F4F7", "#4A5A6A")}>{e.status}</span>
+          {suggestion && <span style={PRIORITY_CHIP[suggestion.priority]}>{wordText(tx, suggestion.priority).toUpperCase()}</span>}
+          <span style={STATUS_CHIP[e.status] ?? chip("#F1F4F7", "#4A5A6A")}>{wordText(tx, e.status)}</span>
         </div>
       </div>
       <div>{e.details}</div>
@@ -119,7 +123,7 @@ function Case({ A, e, suggestion, perms, notify, reload }: {
 
       {(open || e.status === "approved") && (
         <SuggestionBox A={A} s={suggestion} canAnalyze={canAnalyze} busy={analysing} onAnalyse={() => void analyse()}
-          onUseReply={canResolve && open && suggestion ? () => setReason(suggestion.draftReply) : undefined} />
+          onUseReply={canResolve && open && suggestion ? () => setReason(suggestion.source === "rules" ? triageReplyText(tx, suggestion.draftReply) : suggestion.draftReply) : undefined} />
       )}
 
       {canResolve && (open || e.status === "approved") && (
