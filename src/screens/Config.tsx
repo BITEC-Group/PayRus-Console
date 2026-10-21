@@ -1,4 +1,6 @@
 import { useT } from "../lib/extra-copy";
+import { wordText } from "../lib/dbText.ts";
+import { roleLabel } from "../lib/roleLabel.ts";
 import { useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -122,8 +124,8 @@ function PendingProfilesSection({ D }: { D: Desk }) {
       {profiles?.map((p) => (
         <div key={p.roleId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-2)", border: "1px solid var(--color-divider)", borderRadius: "var(--radius-md)", padding: "var(--space-2)" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{p.userName ?? p.userEmail ?? "—"} · {p.role}</div>
-            <div style={{ fontSize: 11 }} className="text-muted">{p.kind} · {p.status}</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{p.userName ?? p.userEmail ?? "—"} · {roleLabel(tx, p.role)}</div>
+            <div style={{ fontSize: 11 }} className="text-muted">{wordText(tx, p.kind)} · {wordText(tx, p.status)}</div>
           </div>
           <button type="button" className="btn btn-secondary" disabled={activatingId === p.roleId} onClick={() => void handleActivate(p.roleId)}>
             {activatingId === p.roleId ? C.activating : C.activate}
@@ -141,6 +143,7 @@ function PendingProfilesSection({ D }: { D: Desk }) {
 const EXPENSE_STATUS_TAG: Record<string, string> = { pending: "tag-neutral", approved: "tag-success", rejected: "tag-danger" };
 
 function ExpenseReportsSection({ D }: { D: Desk }) {
+  const tx = useT();
   const C = D.config;
   const [reports, setReports] = useState<AdminExpenseReport[] | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
@@ -181,7 +184,7 @@ function ExpenseReportsSection({ D }: { D: Desk }) {
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{r.title} · {r.userName ?? r.userEmail ?? "—"}</div>
               <div style={{ fontSize: 11 }} className="text-muted">
-                {r.currency} {r.amount.toLocaleString()} · {r.category}{r.project ? ` · ${r.project}` : ""} · {new Date(r.submittedAt).toLocaleDateString()}
+                {r.currency} {r.amount.toLocaleString()} · {wordText(tx, r.category)}{r.project ? ` · ${r.project}` : ""} · {new Date(r.submittedAt).toLocaleDateString()}
               </div>
             </div>
             {r.status === "pending" ? (
@@ -189,7 +192,7 @@ function ExpenseReportsSection({ D }: { D: Desk }) {
                 {actingId === r.id ? C.cancel : C.resolve}
               </button>
             ) : (
-              <span className={`tag ${EXPENSE_STATUS_TAG[r.status] ?? "tag-neutral"}`}>{r.status}</span>
+              <span className={`tag ${EXPENSE_STATUS_TAG[r.status] ?? "tag-neutral"}`}>{wordText(tx, r.status)}</span>
             )}
           </div>
           {actingId === r.id && (
@@ -253,6 +256,7 @@ export function Config({
   onLogoClick: () => void;
 }) {
   const C = D.config;
+  const tx = useT();
   const [current, setCurrent] = useState<FxMarginConfig | null>(null);
   const [lastRateUpdate, setLastRateUpdate] = useState<FxRateUpdate | null>(null);
   const [marginPct, setMarginPct] = useState("");
@@ -339,7 +343,7 @@ export function Config({
                 </div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.08em" }} className="text-muted">{C.setBy}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{current.decider}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600 }}>{roleLabel(tx, current.decider)}</div>
                 </div>
               </div>
             )}
@@ -390,7 +394,7 @@ export function Config({
             title={C.cardsTitle} note={C.cardsNote} emptyText={C.nothingCards} loadingText={C.loading}
             load={adminListCorporateCards} keyOf={(c) => c.id}
             render={(c) => ({
-              primary: `${c.holderName} · ${c.role}`,
+              primary: `${c.holderName} · ${wordText(tx, c.role)}`,
               secondary: `${c.currency} ${c.spentAmount.toLocaleString()} / ${c.limitAmount.toLocaleString()} · ${who(c.ownerName, c.ownerEmail)}`,
             })}
           />
@@ -399,15 +403,15 @@ export function Config({
             load={adminListLoyaltyAccounts} keyOf={(a) => a.id}
             render={(a) => ({
               primary: `${a.venueName} · ${who(a.userName, a.userEmail)}`,
-              secondary: `${a.points.toLocaleString()} pts · ${a.currency} ${a.monthlySpend.toLocaleString()} this month · ${a.cashbackRate}% cashback`,
+              secondary: tx("{{points}} pts · {{currency}} {{spend}} this month · {{rate}}% cashback", { points: a.points.toLocaleString(), currency: a.currency, spend: a.monthlySpend.toLocaleString(), rate: a.cashbackRate }),
             })}
           />
           <ReadOnlyListSection
             title={C.betsTitle} note={C.betsNote} emptyText={C.nothingBets} loadingText={C.loading}
             load={adminListGameBets} keyOf={(b) => b.id}
             render={(b) => ({
-              primary: `${b.kind} · ${who(b.userName, b.userEmail)}`,
-              secondary: `${b.currency} ${b.stakeAmount.toLocaleString()} stake · ${b.status}${b.payoutAmount != null ? ` · payout ${b.payoutAmount.toLocaleString()}` : ""} · ${new Date(b.placedAt).toLocaleString()}`,
+              primary: `${wordText(tx, b.kind)} · ${who(b.userName, b.userEmail)}`,
+              secondary: `${tx("{{currency}} {{stake}} stake", { currency: b.currency, stake: b.stakeAmount.toLocaleString() })} · ${wordText(tx, b.status)}${b.payoutAmount != null ? ` · ${tx("payout {{amount}}", { amount: b.payoutAmount.toLocaleString() })}` : ""} · ${new Date(b.placedAt).toLocaleString()}`,
             })}
           />
           <ReadOnlyListSection
@@ -423,7 +427,7 @@ export function Config({
             load={adminListPitchSubmissions} keyOf={(p) => p.id}
             render={(p) => ({
               primary: `${p.title} · ${who(p.ownerName, p.ownerEmail)}`,
-              secondary: `${p.category ?? "—"} · ${p.currency} ${p.raised.toLocaleString()} / ${p.goal.toLocaleString()} · ${p.risk} risk · ${new Date(p.createdAt).toLocaleDateString()}`,
+              secondary: `${p.category ?? "—"} · ${p.currency} ${p.raised.toLocaleString()} / ${p.goal.toLocaleString()} · ${tx("{{risk}} risk", { risk: wordText(tx, p.risk) })} · ${new Date(p.createdAt).toLocaleDateString()}`,
             })}
           />
         </div>

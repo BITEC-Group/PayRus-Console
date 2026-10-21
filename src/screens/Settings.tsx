@@ -1,4 +1,5 @@
 import { useT } from "../lib/extra-copy";
+import { roleLabel } from "../lib/roleLabel.ts";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -158,7 +159,7 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
                 <div><button type="button" className="btn btn-primary" onClick={() => void saveProfile()}>{S.save}</button></div>
                 {row(S.email, profile.email)}{row(S.username, profile.username ? `@${profile.username}` : null)}
                 {row(S.country, profile.country)}{row(S.currency, profile.defaultCurrency)}{row(S.kyc, profile.kycStatus)}
-                {row(S.roles, profile.roles.map((r) => `${r.role.replace("_", " ")} (${r.status.replace("_", " ")})`).join(", ") || null)}
+                {row(S.roles, profile.roles.map((r) => `${roleLabel(tx, r.role)} (${tx(r.status.replace("_", " "))})`).join(", ") || null)}
               </>
             )}
           </div>

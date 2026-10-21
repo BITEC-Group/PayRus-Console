@@ -1,4 +1,5 @@
 import { useT } from "../lib/extra-copy";
+import { wordText } from "../lib/dbText.ts";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -59,6 +60,7 @@ export function Partners({ D, locale, setLocale, onBack, onLogoClick }: { D: Des
 type Copy = Desk["partnersPage"];
 
 function ContractsTab({ P, notify }: { P: Copy; notify: (m: string) => void }) {
+  const tx = useT();
   const [rows, setRows] = useState<ContractRow[] | null>(null);
   const [sel, setSel] = useState<string | null>(null);
   const load = useCallback(() => { listContracts().then(setRows).catch((e) => notify(errText(e))); }, [notify]);
@@ -72,7 +74,7 @@ function ContractsTab({ P, notify }: { P: Copy; notify: (m: string) => void }) {
         <button key={c.contractId} type="button" className="card elev-sm" style={{ textAlign: "left", cursor: "pointer", gap: 4, outline: sel === c.contractId ? "2px solid var(--color-primary, #1D3F6B)" : "none" }} onClick={() => setSel(c.contractId)}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
             <strong>{c.partnerName} <span className="text-muted" style={{ fontWeight: 400 }}>· {c.reference}</span></strong>
-            <span style={{ display: "flex", gap: 6 }}><span style={STATUS_CHIP[c.status]}>{c.status.replace("_", " ")}</span><span style={c.live ? chip("#DDF3E8", "#1B6B45") : chip("#F1F4F7", "#4A5A6A")}>{c.live ? P.live : P.notLive}</span></span>
+            <span style={{ display: "flex", gap: 6 }}><span style={STATUS_CHIP[c.status]}>{wordText(tx, c.status)}</span><span style={c.live ? chip("#DDF3E8", "#1B6B45") : chip("#F1F4F7", "#4A5A6A")}>{c.live ? P.live : P.notLive}</span></span>
           </div>
           <span className="text-muted" style={{ fontSize: 12 }}>{c.terms} {P.termsLabel} · {c.agents} {P.agentsLabel} · {c.countries.join(", ")} · {P.integration}: {c.integrationAdapter} / {c.integrationStatus.replace("_", " ")} · {P.prefundShort}: {n2(c.prefundBalance)} {c.settlementCurrency}{c.queuedRequests > 0 ? ` · ${c.queuedRequests} ${P.queueLabel}` : ""}</span>
         </button>
@@ -109,7 +111,7 @@ function ContractDetail({ P, c, notify, reload }: { P: Copy; c: ContractRow; not
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
         <div className="card-title">{c.partnerName} · {c.reference}</div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {(NEXT[c.status] ?? []).map((s) => <button key={s} type="button" className="btn btn-ghost" onClick={() => move(s)}>{P.moveTo} {s.replace("_", " ")}</button>)}
+          {(NEXT[c.status] ?? []).map((s) => <button key={s} type="button" className="btn btn-ghost" onClick={() => move(s)}>{P.moveTo} {wordText(tx, s)}</button>)}
           {c.status !== "terminated" && <button type="button" className="btn btn-ghost" onClick={() => move("terminated")}>{P.moveTo} {tx("terminated")}</button>}
         </div>
       </div>
