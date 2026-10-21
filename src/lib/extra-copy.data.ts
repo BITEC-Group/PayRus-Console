@@ -435,4 +435,9 @@ export const EXTRA: Record<string, Entry> = {
   "A new version is available": { fr: "Une nouvelle version est disponible", pt: "Está disponível uma nova versão", es: "Hay una nueva versión disponible" },
   "Refresh": { fr: "Actualiser", pt: "Atualizar", es: "Actualizar" },
   "Later": { fr: "Plus tard", pt: "Mais tarde", es: "Más tarde" },
+  "Add this app to your home screen": { fr: "Ajouter cette application à l'écran d'accueil", pt: "Adicionar esta aplicação ao ecrã principal", es: "Añadir esta aplicación a la pantalla de inicio" },
+  "Tap the Share button in the browser toolbar.": { fr: "Touchez le bouton Partager dans la barre d'outils du navigateur.", pt: "Toque no botão Partilhar na barra de ferramentas do navegador.", es: "Toque el botón Compartir en la barra de herramientas del navegador." },
+  "Choose “Add to Home Screen”.": { fr: "Choisissez « Sur l'écran d'accueil ».", pt: "Escolha «Adicionar ao ecrã principal».", es: "Elija «Añadir a pantalla de inicio»." },
+  "Tap Add. PayRus then opens like an app from your home screen.": { fr: "Touchez Ajouter. PayRus s'ouvre ensuite comme une application depuis votre écran d'accueil.", pt: "Toque em Adicionar. O PayRus abre depois como uma aplicação a partir do ecrã principal.", es: "Toque Añadir. PayRus se abrirá después como una aplicación desde su pantalla de inicio." },
+  "Close": { fr: "Fermer", pt: "Fechar", es: "Cerrar" },
 };

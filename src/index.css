@@ -285,3 +285,24 @@ main:focus { outline: none; }
   .auth-card { padding: var(--space-4); }
   .brand-tile { max-width: 100%; box-sizing: border-box; }
 }
+
+/* Phones and tablets: let grid/flex children shrink instead of widening the page, and give controls a touch-sized target */
+.card, .card-body { min-width: 0; }
+@media (pointer: coarse), (max-width: 820px) {
+  .btn { min-height: 44px; }
+  .input, select, textarea { min-height: 44px; }
+  select { padding-block: 6px; }
+  input[type="checkbox"], input[type="radio"] { width: 24px; height: 24px; }
+  label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { min-height: 36px; }
+}
+
+/* Phones and small tablets: brand on its own row, the tabs as one swipeable row, the account buttons wrapping compactly */
+@media (max-width: 820px) {
+  .nav { gap: var(--space-2); padding-inline: var(--space-3); }
+  .nav-brand { flex: 1 0 100%; margin-right: 0; }
+  .pr-tabs { flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: var(--space-2); padding-bottom: 2px; }
+  .pr-tabs::-webkit-scrollbar { display: none; }
+  .pr-tabs > .btn { flex: 0 0 auto; }
+  .pr-ids { flex: 1 0 100%; margin-left: 0; gap: var(--space-2); }
+  .pr-ids .btn { min-height: 40px; }
+}
