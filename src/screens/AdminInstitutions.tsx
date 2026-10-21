@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "../types.ts";
 import { errorText } from "../lib/adminStaff.ts";
+import { useT } from "../lib/extra-copy.tsx";
 import { getWebhookOverview, listWebhookFailures, type WebhookFailure, type WebhookOverview } from "../lib/webhooks.ts";
 import { getPlanDistribution, getTeamOverview, type PlanCount, type TeamOverview } from "../lib/plans.ts";
 import { getInstHealth, listInstOverview, listSubProfileStats, type InstHealth, type InstOverviewRow, type SubProfileStat } from "../lib/institutions.ts";
@@ -19,6 +20,7 @@ const COPY: Record<Locale, Record<string, string>> = {
 
 export function InstitutionsTab({ locale }: { locale: Locale }) {
   const C = COPY[locale] ?? COPY.en;
+  const tx = useT(); // catalog names (sub-profiles, record kinds, team roles) are stored in English by the database
   const [rows, setRows] = useState<InstOverviewRow[] | null>(null);
   const [subs, setSubs] = useState<SubProfileStat[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -114,7 +116,7 @@ export function InstitutionsTab({ locale }: { locale: Locale }) {
           {team && team.roles.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
               <span className="text-muted" style={{ fontSize: 12 }}>{C.teamByRole}</span>
-              {team.roles.map((r) => <span key={r.label} className="tag">{r.label}: {r.members}</span>)}
+              {team.roles.map((r) => <span key={r.label} className="tag">{tx(r.label)}: {r.members}</span>)}
             </div>
           )}
         </div>
@@ -123,7 +125,7 @@ export function InstitutionsTab({ locale }: { locale: Locale }) {
       <div className="card elev-sm" style={{ gap: 8 }}>
         <strong>{C.adoption}</strong>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {subs.map((s) => <span key={s.subProfile} className={s.holders > 0 ? "tag tag-success" : "tag tag-neutral"}>{s.label} · {s.holders} {C.holders}</span>)}
+          {subs.map((s) => <span key={s.subProfile} className={s.holders > 0 ? "tag tag-success" : "tag tag-neutral"}>{tx(s.label)} · {s.holders} {C.holders}</span>)}
         </div>
       </div>
 
@@ -138,7 +140,7 @@ export function InstitutionsTab({ locale }: { locale: Locale }) {
             <tbody>
               {active.map((r) => (
                 <tr key={r.kind} style={{ borderTop: "1px solid var(--border, #ddd)" }}>
-                  <td style={{ padding: 6 }}><strong>{r.kindLabel}</strong><div className="text-muted" style={{ fontSize: 11 }}>{r.moduleKey}</div></td>
+                  <td style={{ padding: 6 }}><strong>{tx(r.kindLabel)}</strong><div className="text-muted" style={{ fontSize: 11 }}>{r.moduleKey}</div></td>
                   <td>{r.owners}</td><td>{r.records}</td><td>{num(r.totalAmount)}</td><td>{num(r.openAmount)}</td><td>{num(r.settledAmount)}</td>
                   <td>{r.awaitingApproval > 0 ? <span className="tag tag-warning">{r.awaitingApproval}</span> : 0}</td>
                   <td>{r.stuckOver7d > 0 ? <span className="tag tag-warning">{r.stuckOver7d}</span> : 0}</td>

@@ -25,6 +25,10 @@ fs.rmSync(tmp, { force: true });
 const problems = [];
 const ph = (s) => (String(s).match(/\{\{\s*\w+\s*\}\}/g) || []).map((x) => x.replace(/\s/g, "")).sort().join(",");
 const DYNAMIC = new Set(["Development", "Sandbox", "Staging", "Demo", "Pilot"]); // environment names are looked up at run time
+// entries after this marker are database catalog names, looked up as tx(<value>)
+const MARKER = "// catalog names stored in English by the database";
+const markerAt = dataSrc.indexOf(MARKER);
+if (markerAt >= 0) for (const m of dataSrc.slice(markerAt).matchAll(/^\s*("(?:[^"\\]|\\.)*"): \{/gm)) DYNAMIC.add(JSON.parse(m[1]));
 
 const used = new Set();
 const files = [];
