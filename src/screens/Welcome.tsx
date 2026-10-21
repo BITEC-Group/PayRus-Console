@@ -217,14 +217,17 @@ export function Welcome({
         backgroundSize: "16px 16px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-4) var(--space-6)" }}>
+      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-4) var(--space-6)" }}>
         <BackButton label={D.back} onClick={onBack} />
         <LocaleMenu value={locale} onChange={setLocale} variant="auth" />
-      </div>
+      </header>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-6)", padding: "var(--space-4) var(--space-6) var(--space-8)", maxWidth: 420, width: "100%", boxSizing: "border-box", margin: "0 auto" }}>
-        <PayRusLogo size={220} onClick={onLogoClick} alt={D.logoAlt} homeLabel={D.logoHomeLabel} />
+      <main id="main" tabIndex={-1} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-6)", padding: "var(--space-4) var(--space-6) var(--space-8)", maxWidth: 460, width: "100%", boxSizing: "border-box", margin: "0 auto" }}>
+        <div className="brand-tile">
+          <PayRusLogo size={220} onClick={onLogoClick} alt={D.logoAlt} homeLabel={D.logoHomeLabel} />
+        </div>
 
+        <div className="auth-card">
         <div style={{ display: "flex", flexDirection: "column", gap: 8, textAlign: "center" }}>
           <h1 style={{ margin: 0, fontSize: 24, fontFamily: "var(--font-auth-heading)", fontWeight: 800, color: "var(--auth-navy)", letterSpacing: 0 }}>
             {D.welcomeTitle}
@@ -233,6 +236,12 @@ export function Welcome({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", width: "100%" }}>
+          <form
+            noValidate
+            onSubmit={(e) => { e.preventDefault(); void handleSignIn(); }}
+            aria-busy={checking}
+            style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}
+          >
           <div className="field">
             <label htmlFor="ops-email">{D.email}</label>
             <input
@@ -240,6 +249,10 @@ export function Welcome({
               id="ops-email"
               type="text"
               autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "ops-signin-error" : undefined}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               style={{ borderRadius: 12, borderColor: "var(--auth-border)" }}
@@ -251,9 +264,11 @@ export function Welcome({
               className="input"
               id="ops-password"
               type="password"
+              autoComplete="current-password"
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? "ops-signin-error" : undefined}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") void handleSignIn(); }}
               style={{ borderRadius: 12, borderColor: "var(--auth-border)" }}
             />
           </div>
@@ -263,18 +278,17 @@ export function Welcome({
           </button>
 
           {error && (
-            <p style={{ margin: 0, fontSize: 12.5, color: "#C33F55", fontWeight: 600 }} role="alert">
+            <p id="ops-signin-error" style={{ margin: 0, fontSize: 12.5, color: "#B3263E", fontWeight: 600 }} role="alert">
               {error}
             </p>
           )}
           {notice && !error && (
-            <p style={{ margin: 0, fontSize: 12.5, color: "var(--auth-teal)", fontWeight: 600 }}>{notice}</p>
+            <p style={{ margin: 0, fontSize: 12.5, color: "var(--auth-teal)", fontWeight: 600 }} role="status">{notice}</p>
           )}
 
           <button
-            type="button"
+            type="submit"
             disabled={checking}
-            onClick={() => void handleSignIn()}
             style={{
               border: 0,
               borderRadius: 16,
@@ -292,6 +306,7 @@ export function Welcome({
           >
             {checking ? D.checking : D.signIn}
           </button>
+          </form>
 
           <p style={{ margin: 0, textAlign: "center", fontSize: 12.5, color: "var(--auth-body)" }}>
             {D.noAccount}{" "}
@@ -301,13 +316,13 @@ export function Welcome({
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, marginTop: 2 }}>
-            <button type="button" onClick={() => togglePanel("magic")} style={secondaryButtonStyle}>
+            <button type="button" onClick={() => togglePanel("magic")} aria-expanded={panel === "magic"} style={secondaryButtonStyle}>
               {D.magicLinkPrompt}
             </button>
-            <button type="button" onClick={() => togglePanel("phone")} style={secondaryButtonStyle}>
+            <button type="button" onClick={() => togglePanel("phone")} aria-expanded={panel === "phone"} style={secondaryButtonStyle}>
               {D.phoneOtpPrompt}
             </button>
-            <button type="button" onClick={() => togglePanel("sso")} style={secondaryButtonStyle}>
+            <button type="button" onClick={() => togglePanel("sso")} aria-expanded={panel === "sso"} style={secondaryButtonStyle}>
               {D.sso}
             </button>
           </div>
@@ -397,7 +412,7 @@ export function Welcome({
           <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--auth-body)", textAlign: "center", marginBottom: -2 }}>
             {D.quickSignInTitle}
           </span>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(56px,1fr))", gap: 8 }}>
             {OAUTH_PROVIDERS.map((p) => (
               <button
                 key={p.id}
@@ -415,9 +430,10 @@ export function Welcome({
             ))}
           </div>
         </div>
+        </div>
 
-        <p style={{ margin: 0, fontSize: 11.5, lineHeight: 1.6, color: "var(--auth-muted)", textAlign: "center" }}>{D.termsNote}</p>
-      </div>
+        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: "var(--auth-muted)", textAlign: "center" }}>{D.termsNote}</p>
+      </main>
     </div>
   );
 }

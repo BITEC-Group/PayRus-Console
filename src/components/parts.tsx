@@ -38,7 +38,9 @@ export function PayRusLogo({
       src={`${import.meta.env.BASE_URL}payrus-logo.png`}
       alt={alt}
       className={className}
-      style={{ width: size, mixBlendMode: "multiply" }}
+      width={size}
+      height={Math.round((size * 848) / 1111)}
+      style={{ width: size, maxWidth: "100%", height: "auto", mixBlendMode: "multiply" }}
       draggable={false}
     />
   );
@@ -161,6 +163,7 @@ export function LocaleMenu({
                 key={l.code}
                 type="button"
                 role="option"
+                lang={l.code}
                 aria-selected={active}
                 onClick={() => {
                   onChange(l.code);

@@ -29,9 +29,11 @@ export function Landing({
         backgroundSize: "16px 16px",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", padding: "var(--space-4) var(--space-6)", flexWrap: "wrap", rowGap: "var(--space-3)" }}>
+      <header style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", padding: "var(--space-4) var(--space-6)", flexWrap: "wrap", rowGap: "var(--space-3)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, marginRight: "auto" }}>
-          <PayRusLogo size={120} onClick={onLogoClick} alt={D.logoAlt} homeLabel={D.logoHomeLabel} />
+          <div className="brand-tile" style={{ padding: "8px 14px" }}>
+            <PayRusLogo size={150} onClick={onLogoClick} alt={D.logoAlt} homeLabel={D.logoHomeLabel} />
+          </div>
         </div>
         <LocaleMenu value={locale} onChange={setLocale} variant="auth" />
         <button
@@ -41,9 +43,11 @@ export function Landing({
         >
           {D.landing.ctaSignIn}
         </button>
-      </div>
+      </header>
 
-      <div
+      <main
+        id="main"
+        tabIndex={-1}
         style={{
           padding: "var(--space-8) var(--space-6)",
           maxWidth: 1100,
@@ -144,7 +148,7 @@ export function Landing({
         <p style={{ marginTop: "var(--space-8)", maxWidth: "44em", fontSize: 12.5, lineHeight: 1.6, color: "var(--auth-muted)" }}>
           {D.landing.footerNote}
         </p>
-      </div>
+      </main>
     </div>
   );
 }

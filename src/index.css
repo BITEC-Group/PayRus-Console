@@ -8,11 +8,12 @@
      below. Kept as separate tokens so nothing else in the console changes. */
   --auth-bg: #f7faf8;
   --auth-navy: #0a2f5c;
-  --auth-blue: #0e7fb0;
-  --auth-teal: #17927e;
+  --auth-blue: #0b6a96;
+  --auth-teal: #0f7a68;
   --auth-green: #78b72e;
-  --auth-body: #66798f;
-  --auth-muted: #9baab9;
+  /* text tokens darkened to meet WCAG AA (4.5:1) on the --auth-bg and white grounds */
+  --auth-body: #4a5d73;
+  --auth-muted: #5f7184;
   --auth-border: #e4eaf0;
   --auth-gradient: linear-gradient(90deg, #78b72e 0%, #17927e 55%, #0e7fb0 100%);
   --font-auth-heading: "Sora", sans-serif;
@@ -251,4 +252,36 @@ img { display: block; max-width: 100%; }
 @media (min-width: 1100px) {
   .pr-shell { grid-template-columns: minmax(0, 1fr) minmax(0, 340px); }
   .pr-side { position: sticky; top: var(--space-6); }
+}
+
+/* Accessibility helpers */
+.skip-link {
+  position: absolute; left: var(--space-4); top: -100px; z-index: 100;
+  background: var(--auth-navy); color: #fff; padding: 10px 16px; border-radius: 10px;
+  font-weight: 700; font-size: 14px; text-decoration: none;
+}
+.skip-link:focus { top: var(--space-4); outline: 3px solid #fff; outline-offset: 2px; box-shadow: 0 0 0 5px var(--auth-navy); }
+main:focus { outline: none; }
+
+/* The PayRus logo on a white tile, so it stays visible on any page background */
+.brand-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 1px solid var(--auth-border); border-radius: 20px;
+  padding: 12px 18px; box-shadow: 0 10px 26px rgba(10, 42, 74, 0.08);
+}
+.auth-card {
+  display: flex; flex-direction: column; gap: var(--space-4); width: 100%; box-sizing: border-box;
+  background: #fff; border: 1px solid var(--auth-border); border-radius: 20px;
+  padding: var(--space-6); box-shadow: 0 10px 26px rgba(10, 42, 74, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+@media (forced-colors: active) {
+  .brand-tile, .auth-card { border-color: CanvasText; }
+}
+@media (max-width: 420px) {
+  .auth-card { padding: var(--space-4); }
+  .brand-tile { max-width: 100%; box-sizing: border-box; }
 }
