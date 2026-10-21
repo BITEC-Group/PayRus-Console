@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState } from "react";
 import type { Desk, LedgerRow, Locale, Role, TabKey } from "../types.ts";
 import { TAB_KEYS, fmtNum } from "../data.ts";
@@ -64,6 +65,7 @@ export function Console({
   onOpenSettings: () => void;
   onOpenRegisterCustomer: () => void;
 }) {
+  const tx = useT();
   const [data, setData] = useState<ConsoleData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -78,14 +80,14 @@ export function Console({
   if (loadError) {
     return (
       <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", padding: "var(--space-8)" }}>
-        <div className="tag tag-accent">Couldn't load console data: {loadError}</div>
+        <div className="tag tag-accent">{tx("Couldn't load console data:")} {loadError}</div>
       </div>
     );
   }
   if (!data) {
     return (
       <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", padding: "var(--space-8)" }}>
-        <div className="tag tag-neutral">Loading…</div>
+        <div className="tag tag-neutral">{tx("Loading…")}</div>
       </div>
     );
   }

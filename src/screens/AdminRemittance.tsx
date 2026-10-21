@@ -1,6 +1,7 @@
 // Remittance monitor: corridor volumes, delivery-method mix and stuck transfers,
 // derived from the transfers the staff member is already permitted to read
 // (same admin_list_transfers RPC and RLS as the Transactions tab — no new access).
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState } from "react";
 import type { Locale } from "../types.ts";
 import { getCurrentFxMarginConfig, type FxMarginConfig } from "../lib/adminConfig.ts";
@@ -31,6 +32,7 @@ const F: Record<Locale, Record<string, string>> = {
 };
 
 function FeeCard({ locale, perms, notify }: { locale: Locale; perms: MyPermissions | null; notify: (m: string) => void }) {
+  const tx = useT();
   const f = F[locale] ?? F.en;
   const [rows, setRows] = useState<FeeVersion[] | null>(null);
   const [tick, setTick] = useState(0);
@@ -42,7 +44,7 @@ function FeeCard({ locale, perms, notify }: { locale: Locale; perms: MyPermissio
     const b = window.prompt(f.pctPrompt, cur.percentFee === null ? "" : String(cur.percentFee * 100)); if (b === null) return;
     const n = window.prompt(f.notePrompt, ""); if (n === null) return;
     const flat = Number(a); const pct = b.trim() === "" ? null : Number(b) / 100;
-    if (!Number.isFinite(flat) || flat < 0 || (pct !== null && !(pct >= 0 && pct < 1))) { notify("Invalid number"); return; }
+    if (!Number.isFinite(flat) || flat < 0 || (pct !== null && !(pct >= 0 && pct < 1))) { notify(tx("Invalid number")); return; }
     void setRemittanceFee(flat, pct, n.trim() || undefined).then(() => { notify(f.saved); setTick((x) => x + 1); }).catch((e) => notify(errorText(e, "error")));
   };
   return (
@@ -68,6 +70,7 @@ function FeeCard({ locale, perms, notify }: { locale: Locale; perms: MyPermissio
 }
 
 function CorridorGuardrails({ locale, perms, notify }: { locale: Locale; perms: MyPermissions | null; notify: (m: string) => void }) {
+  const tx = useT();
   const g = G[locale] ?? G.en;
   const [rows, setRows] = useState<Corridor[] | null>(null);
   const [events, setEvents] = useState<CorridorEvent[]>([]);
@@ -96,7 +99,7 @@ function CorridorGuardrails({ locale, perms, notify }: { locale: Locale; perms: 
     const pctFee = pf.trim() === "" ? null : Number(pf) / 100;
     const vals = [f, po, mn].map(Number);
     if ((margin !== null && !(margin >= 0 && margin < 1)) || vals.some((v) => !Number.isFinite(v) || v < 0)
-      || (flatFee !== null && !(flatFee >= 0 && flatFee <= 100)) || (pctFee !== null && !(pctFee >= 0 && pctFee < 1))) { notify("Invalid number"); return; }
+      || (flatFee !== null && !(flatFee >= 0 && flatFee <= 100)) || (pctFee !== null && !(pctFee >= 0 && pctFee < 1))) { notify(tx("Invalid number")); return; }
     void run(() => upsertCorridor(c.from, c.to, {
       marginRate: margin, payoutCostEur: vals[1], processingCostEur: c.processingCostEur, payinCostEur: c.payinCostEur, riskCostEur: c.riskCostEur,
       floorEur: vals[0], minAmount: vals[2], maxAmount: null, flatFeeEur: flatFee, percentFee: pctFee,

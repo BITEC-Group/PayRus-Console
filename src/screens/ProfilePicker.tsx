@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState } from "react";
 import type { Desk, Role, TabKey } from "../types.ts";
 import { TAB_KEYS } from "../data.ts";
@@ -15,6 +16,7 @@ export function ProfilePicker({
   onPick: (role: Role) => void;
   onPickAdmin: (password: string) => Promise<void>;
 }) {
+  const tx = useT();
   const [adminPassword, setAdminPassword] = useState("");
   const [adminBusy, setAdminBusy] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
@@ -49,8 +51,8 @@ export function ProfilePicker({
       <p style={{ margin: "0 0 var(--space-6)", maxWidth: "40em", fontSize: 16, lineHeight: 1.6, color: "var(--color-neutral-700)" }}>
         {D.chooseProfileNote}
       </p>
-      {loadError && <div className="tag tag-accent">Couldn't load profiles: {loadError}</div>}
-      {!loadError && !rolesAndCaps && <div className="tag tag-neutral">Loading…</div>}
+      {loadError && <div className="tag tag-accent">{tx("Couldn't load profiles:")} {loadError}</div>}
+      {!loadError && !rolesAndCaps && <div className="tag tag-neutral">{tx("Loading…")}</div>}
       {rolesAndCaps && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "var(--space-4)" }}>
           {rolesAndCaps.roleOrder.map((key, i) => (

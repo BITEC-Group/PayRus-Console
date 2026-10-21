@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale, OrgPageCopy } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -158,6 +159,7 @@ function CaseDetail({ O, id, canUpdate, canApprove, onClose, onChanged, notify }
 }
 
 function CasesTab({ O, o, caps, seed, clearSeed, notify }: { O: OrgPageCopy; o: org.Org; caps: Caps; seed: org.OrgTransfer | null; clearSeed: () => void; notify: (m: string) => void }) {
+  const tx = useT();
   const [status, setStatus] = useState("");
   const [sel, setSel] = useState<string | null>(null);
   const [form, setForm] = useState({ kind: "complaint", subject: "", description: "", priority: "normal" });
@@ -172,7 +174,7 @@ function CasesTab({ O, o, caps, seed, clearSeed, notify }: { O: OrgPageCopy; o: 
           <div className="card-title">{O.openCase}{seed ? ` — ${seed.reference}` : ""}</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <select className="input" aria-label={O.kind} disabled={!!seed} value={kind} onChange={(e) => setForm({ ...form, kind: e.target.value })}>
-              {["complaint", "account", "other"].map((k) => <option key={k} value={k}>{k}</option>)}{seed && <option value="transaction">transaction</option>}
+              {["complaint", "account", "other"].map((k) => <option key={k} value={k}>{k}</option>)}{seed && <option value="transaction">{tx("transaction")}</option>}
             </select>
             <input className="input" style={{ flex: 1, minWidth: 180 }} placeholder={O.subject} aria-label={O.subject} value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
             <select className="input" aria-label={O.priority} value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>{["low", "normal", "high", "critical"].map((p) => <option key={p} value={p}>{p}</option>)}</select>
@@ -231,6 +233,7 @@ function TransactionsTab({ O, o, canCase, onOpenCase }: { O: OrgPageCopy; o: org
 }
 
 function CustomerDetail({ O, id, onClose, notify }: { O: OrgPageCopy; id: string; onClose: () => void; notify: (m: string) => void }) {
+  const tx = useT();
   const { data: d, error, reload } = useLoad(() => org.orgCustomerDetail(id), [id]);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
@@ -242,11 +245,11 @@ function CustomerDetail({ O, id, onClose, notify }: { O: OrgPageCopy; id: string
         <>
           <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "2px 12px", fontSize: 13 }}>
             <span className="text-muted">{O.nameLabel}</span><span>{d.name}</span>
-            <span className="text-muted">Email</span><span>{d.email ?? "—"}</span>
+            <span className="text-muted">{tx("Email")}</span><span>{d.email ?? "—"}</span>
             <span className="text-muted">{O.phoneLabel}</span><span>{d.phone ?? "—"}</span>
             <span className="text-muted">{O.home}</span><span>{d.homeCountry ?? "—"}</span>
-            <span className="text-muted">KYC</span><span>{d.kycStatus}</span>
-            {!d.masked && (<><span className="text-muted">{O.dobLabel}</span><span>{d.dateOfBirth ?? "—"}</span><span className="text-muted">{O.addressLabel}</span><span>{d.address ?? "—"}</span><span className="text-muted">ID</span><span>{d.idType ?? "—"}</span></>)}
+            <span className="text-muted">{tx("KYC")}</span><span>{d.kycStatus}</span>
+            {!d.masked && (<><span className="text-muted">{O.dobLabel}</span><span>{d.dateOfBirth ?? "—"}</span><span className="text-muted">{O.addressLabel}</span><span>{d.address ?? "—"}</span><span className="text-muted">{tx("ID")}</span><span>{d.idType ?? "—"}</span></>)}
           </div>
           {d.masked ? (
             <div style={{ display: "grid", gap: 6, padding: 12, borderRadius: 10, background: "var(--color-neutral-100, #F1F4F7)" }}>
@@ -266,6 +269,7 @@ function CustomerDetail({ O, id, onClose, notify }: { O: OrgPageCopy; id: string
 }
 
 function CustomersTab({ O, o, notify }: { O: OrgPageCopy; o: org.Org; notify: (m: string) => void }) {
+  const tx = useT();
   const { data, error } = useLoad(() => org.orgCustomers(o.id), [o.id]);
   const [sel, setSel] = useState<string | null>(null);
   if (error) return <div className="tag tag-neutral">{error}</div>;
@@ -277,7 +281,7 @@ function CustomersTab({ O, o, notify }: { O: OrgPageCopy; o: org.Org; notify: (m
       {(data ?? []).map((c) => (
         <button key={c.id} type="button" className="card elev-sm" style={{ textAlign: "left", cursor: "pointer", gap: 2 }} onClick={() => setSel(c.id)}>
           <strong>{c.maskedName} <span className="text-muted" style={{ fontWeight: 400 }}>{c.maskedEmail}</span></strong>
-          <span className="text-muted" style={{ fontSize: 12 }}>{c.homeCountry ?? "—"} · KYC {c.kycStatus}{c.sensitiveVisible ? ` · ${O.fullAccessShort}` : ""}</span>
+          <span className="text-muted" style={{ fontSize: 12 }}>{c.homeCountry ?? "—"} {tx("· KYC")} {c.kycStatus}{c.sensitiveVisible ? ` · ${O.fullAccessShort}` : ""}</span>
         </button>
       ))}
     </div>

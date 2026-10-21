@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState } from "react";
 import type { AdminPageCopy } from "../types.ts";
 import {
@@ -167,6 +168,7 @@ export function GatePassword({ A, notify }: { A: AdminPageCopy; notify: Notify }
 }
 
 export function AddProfile({ A, notify, reload }: { A: AdminPageCopy; notify: Notify; reload: () => void }) {
+  const tx = useT();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -184,11 +186,11 @@ export function AddProfile({ A, notify, reload }: { A: AdminPageCopy; notify: No
         <div className="card elev-sm" style={{ gap: 8, marginTop: 8 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 8 }}>
             <div className="field"><label>{A.name}</label><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></div>
-            <div className="field"><label>Email</label><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+            <div className="field"><label>{tx("Email")}</label><input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
             <div className="field"><label>{A.roleLabel}</label>
               <select className="input" value={role} onChange={(e) => setRole(e.target.value)}>{creatable.map((s) => <option key={s.slug} value={s.slug}>{s.slug}</option>)}</select>
             </div>
-            <div className="field"><label>Type</label>
+            <div className="field"><label>{tx("Type")}</label>
               <select className="input" value={kind} onChange={(e) => setKind(e.target.value as "individual" | "organisation")}>
                 <option value="individual">{A.kindIndividual}</option><option value="organisation">{A.kindOrganisation}</option>
               </select>

@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -21,6 +22,7 @@ const fmtMoney = (n: number, cur: string) => `${cur} ${n.toLocaleString(undefine
 export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: {
   D: Desk; locale: Locale; setLocale: (l: Locale) => void; userId: string | null; onBack: () => void; onLogoClick: () => void;
 }) {
+  const tx = useT();
   const S = D.settings;
   const [section, setSection] = useState<Section>("profile");
   const [message, setMessage] = useState<string | null>(null);
@@ -305,7 +307,7 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
               <div className="text-muted" style={{ fontSize: 11 }}>{S.fxAttribution}</div>
             </div>
             <div className="card elev-sm" style={{ gap: 4 }}>
-              {row(S.version, "PayRus Ops")}
+              {row(S.version, tx("PayRus Ops"))}
             </div>
           </div>
         )}

@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -87,6 +88,7 @@ function BlockedTransfersSection({ D }: { D: Desk }) {
 }
 
 function PendingProfilesSection({ D }: { D: Desk }) {
+  const tx = useT();
   const C = D.config;
   const [profiles, setProfiles] = useState<PendingProfile[] | null>(null);
   const [activatingId, setActivatingId] = useState<string | null>(null);
@@ -99,7 +101,7 @@ function PendingProfilesSection({ D }: { D: Desk }) {
     setActivatingId(roleId);
     setMessage(null);
     try {
-      const reason = window.prompt("Compliance override - why is this profile being activated? (10+ characters)");
+      const reason = window.prompt(tx("Compliance override - why is this profile being activated? (10+ characters)"));
       if (!reason || reason.trim().length < 10) { setMessage(C.activateFailed); return; }
       await adminActivateProfile(roleId, reason.trim());
       setMessage(C.activated);

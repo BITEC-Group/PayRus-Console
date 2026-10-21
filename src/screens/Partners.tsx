@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -28,6 +29,7 @@ const n2 = (n: number | null | undefined) => (n == null ? "—" : Number(n).toLo
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${(Number(n) * 100).toLocaleString(undefined, { maximumFractionDigits: 3 })}%`);
 
 export function Partners({ D, locale, setLocale, onBack, onLogoClick }: { D: Desk; locale: Locale; setLocale: (l: Locale) => void; onBack: () => void; onLogoClick: () => void }) {
+  const tx = useT();
   const P = D.partnersPage;
   const [tab, setTab] = useState<Tab>("contracts");
   const [isSuper, setIsSuper] = useState(false);
@@ -43,7 +45,7 @@ export function Partners({ D, locale, setLocale, onBack, onLogoClick }: { D: Des
       <div style={{ flex: 1, padding: "var(--space-4) var(--space-6) var(--space-8)", maxWidth: 1040, width: "100%", boxSizing: "border-box", margin: "0 auto" }}>
         <h1 style={{ margin: "0 0 4px" }}>{P.headline}</h1>
         <p className="text-muted" style={{ marginBottom: "var(--space-4)" }}>{P.subtitle}</p>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "var(--space-3)" }}>{tabBtn("contracts", P.tabContracts)}{tabBtn("pricing", P.tabPricing)}{tabBtn("types", "Payout types")}{tabBtn("import", P.tabImport)}</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: "var(--space-3)" }}>{tabBtn("contracts", P.tabContracts)}{tabBtn("pricing", P.tabPricing)}{tabBtn("types", tx("Payout types"))}{tabBtn("import", P.tabImport)}</div>
         {message && <div className="tag tag-neutral" role="status" style={{ marginBottom: "var(--space-3)" }}>{message}</div>}
         {tab === "contracts" && <ContractsTab P={P} notify={setMessage} />}
         {tab === "pricing" && <PricingTab P={P} isSuper={isSuper} notify={setMessage} />}
@@ -81,6 +83,7 @@ function ContractsTab({ P, notify }: { P: Copy; notify: (m: string) => void }) {
 }
 
 function ContractDetail({ P, c, notify, reload }: { P: Copy; c: ContractRow; notify: (m: string) => void; reload: () => void }) {
+  const tx = useT();
   const [ready, setReady] = useState<ReadinessRow[] | null>(null);
   const [tasks, setTasks] = useState<IntegrationTask[]>([]);
   const [terms, setTerms] = useState<TermRow[]>([]);
@@ -107,7 +110,7 @@ function ContractDetail({ P, c, notify, reload }: { P: Copy; c: ContractRow; not
         <div className="card-title">{c.partnerName} · {c.reference}</div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {(NEXT[c.status] ?? []).map((s) => <button key={s} type="button" className="btn btn-ghost" onClick={() => move(s)}>{P.moveTo} {s.replace("_", " ")}</button>)}
-          {c.status !== "terminated" && <button type="button" className="btn btn-ghost" onClick={() => move("terminated")}>{P.moveTo} terminated</button>}
+          {c.status !== "terminated" && <button type="button" className="btn btn-ghost" onClick={() => move("terminated")}>{P.moveTo} {tx("terminated")}</button>}
         </div>
       </div>
 
@@ -132,10 +135,10 @@ function ContractDetail({ P, c, notify, reload }: { P: Copy; c: ContractRow; not
       </div>
 
       <div style={{ ...hr, paddingTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <strong style={{ fontSize: 13 }}>Routing priority (1 = first)</strong>
-        <input className="input" style={{ width: 90 }} type="number" min={1} max={1000} disabled={!isSuper} aria-label="Routing priority" value={prio} onChange={(e) => setPrio(e.target.value)} />
-        <button type="button" className="btn btn-ghost" disabled={!isSuper || !Number(prio)} onClick={() => { const r = window.prompt(P.reasonPrompt); if (r === null) return; run(() => setPriority(c.contractId, Number(prio), r)); }}>Save priority</button>
-        <span className="text-muted" style={{ fontSize: 12 }}>Lower numbers are used first on a corridor; the pricing objective picks between equals.</span>
+        <strong style={{ fontSize: 13 }}>{tx("Routing priority (1 = first)")}</strong>
+        <input className="input" style={{ width: 90 }} type="number" min={1} max={1000} disabled={!isSuper} aria-label={tx("Routing priority")} value={prio} onChange={(e) => setPrio(e.target.value)} />
+        <button type="button" className="btn btn-ghost" disabled={!isSuper || !Number(prio)} onClick={() => { const r = window.prompt(P.reasonPrompt); if (r === null) return; run(() => setPriority(c.contractId, Number(prio), r)); }}>{tx("Save priority")}</button>
+        <span className="text-muted" style={{ fontSize: 12 }}>{tx("Lower numbers are used first on a corridor; the pricing objective picks between equals.")}</span>
       </div>
       <div style={{ ...hr, paddingTop: 8, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <strong style={{ fontSize: 13 }}>{P.prefundTitle}: {n2(c.prefundBalance)} {c.settlementCurrency}</strong>
@@ -171,6 +174,7 @@ const emptyPolicy = (): Omit<PolicyRow, "id" | "active"> => ({
 });
 
 function PricingTab({ P, isSuper, notify }: { P: Copy; isSuper: boolean; notify: (m: string) => void }) {
+  const tx = useT();
   const [policies, setPolicies] = useState<PolicyRow[] | null>(null);
   const [form, setForm] = useState(emptyPolicy());
   const [sim, setSim] = useState<{ country: string; method: string; amount: string; rows: SimRow[] | null }>({ country: "CD", method: "mobile_money", amount: "100", rows: null });
@@ -195,16 +199,16 @@ function PricingTab({ P, isSuper, notify }: { P: Copy; isSuper: boolean; notify:
         {policies === null && <div className="tag tag-neutral">{P.loading}</div>}
         {(policies ?? []).map((p) => (
           <button key={p.id} type="button" style={{ ...hr, textAlign: "left", background: "transparent", cursor: "pointer", padding: "6px 0", fontSize: 12 }} onClick={() => setForm({ ...p })}>
-            <strong>{p.scope}{p.country ? ` ${p.country}` : ""}{p.method ? ` ${p.method}` : ""}</strong> · {p.objective} · margin {n2(p.marginFlatEur)} EUR + {pct(p.marginPercent)} · min {n2(p.minFeeEur)}{p.maxFeeEur ? ` / max ${n2(p.maxFeeEur)}` : ""} · fast +{n2(p.premiumFastEur)} · same-day +{n2(p.premiumSameDayEur)} · SLA weight {n2(p.slaWeightEurPerDay)}/day · fallback {n2(p.fallbackCostEur)}
+            <strong>{p.scope}{p.country ? ` ${p.country}` : ""}{p.method ? ` ${p.method}` : ""}</strong> · {tx("{{objective}} · margin {{marginFlat}} EUR + {{marginPct}} · min {{minFee}}{{max}} · fast +{{fast}} · same-day +{{sameDay}} · SLA weight {{sla}}/day · fallback {{fallback}}", { objective: p.objective, marginFlat: n2(p.marginFlatEur), marginPct: pct(p.marginPercent), minFee: n2(p.minFeeEur), max: p.maxFeeEur ? tx(" / max {{value}}", { value: n2(p.maxFeeEur) }) : "", fast: n2(p.premiumFastEur), sameDay: n2(p.premiumSameDayEur), sla: n2(p.slaWeightEurPerDay), fallback: n2(p.fallbackCostEur) })}
           </button>
         ))}
         <div style={{ ...hr, paddingTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 8 }}>
-          <div className="field"><label htmlFor="pp-scope">scope</label>
+          <div className="field"><label htmlFor="pp-scope">{tx("scope")}</label>
             <select id="pp-scope" className="input" disabled={!isSuper} value={form.scope} onChange={(e) => setForm({ ...form, scope: e.target.value })}>{["global", "country", "method", "country_method"].map((s) => <option key={s} value={s}>{s}</option>)}</select></div>
           <div className="field"><label htmlFor="pp-country">{P.country}</label><input id="pp-country" className="input" maxLength={2} disabled={!isSuper || !form.scope.includes("country")} value={form.country ?? ""} onChange={(e) => setForm({ ...form, country: e.target.value.toUpperCase() })} /></div>
           <div className="field"><label htmlFor="pp-method">{P.method}</label>
             <select id="pp-method" className="input" disabled={!isSuper || !form.scope.includes("method")} value={form.method ?? ""} onChange={(e) => setForm({ ...form, method: e.target.value })}><option value="">—</option>{METHODS.map((m) => <option key={m} value={m}>{m}</option>)}</select></div>
-          <div className="field"><label htmlFor="pp-obj">objective</label>
+          <div className="field"><label htmlFor="pp-obj">{tx("objective")}</label>
             <select id="pp-obj" className="input" disabled={!isSuper} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })}>{OBJECTIVES.map((o) => <option key={o} value={o}>{o}</option>)}</select></div>
           {num("marginFlatEur", "margin flat (EUR)")}{num("marginPercent", "margin % (0.005 = 0.5%)", "0.001")}{num("minFeeEur", "min fee (EUR)")}{num("maxFeeEur", "max fee (EUR)")}
           {num("premiumFastEur", "fast premium (EUR)")}{num("premiumSameDayEur", "same-day premium (EUR)")}{num("slaWeightEurPerDay", "SLA weight (EUR/day)")}{num("fallbackCostEur", "fallback cost (EUR)")}{num("roundingStep", "rounding step")}

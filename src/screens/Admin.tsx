@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useCallback, useEffect, useState } from "react";
 import type { AdminPageCopy, Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -96,6 +97,7 @@ function Escalate({ A, userId, userLabel, transfer, onDone, notify }: {
 export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
   D: Desk; locale: Locale; setLocale: (l: Locale) => void; onBack: () => void; onLogoClick: () => void;
 }) {
+  const tx = useT();
   const A = D.adminPage;
   const [perms, setPerms] = useState<MyPermissions | null>(null);
   const [tab, setTab] = useState<TabId>("users");
@@ -198,11 +200,11 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                           {r.role.replace("_", " ")}
                           <select aria-label={`${A.roleStatus}: ${r.role}`} value={r.status} style={{ font: "inherit", border: 0, background: "transparent", color: "inherit" }}
                             onChange={(e) => void run(() => updateRoleStatus(r.id, e.target.value as "incomplete" | "pending_verification" | "verified"), A.saved)}>
-                            <option value="incomplete">incomplete</option><option value="pending_verification">pending verification</option><option value="verified">verified</option>
+                            <option value="incomplete">{tx("incomplete")}</option><option value="pending_verification">{tx("pending verification")}</option><option value="verified">{tx("verified")}</option>
                           </select>
                         </span>
                       ) : <span key={r.id} style={chip("#E7EEF7", "#1D3F6B")}>{r.role.replace("_", " ")} · {r.status.replace("_", " ")}</span>)}
-                      <span style={chip("#F1F4F7", "#4A5A6A")}>KYC {u.kycStatus}</span>
+                      <span style={chip("#F1F4F7", "#4A5A6A")}>{tx("KYC")} {u.kycStatus}</span>
                     </div>
                     {u.wallets.length > 0 && <div className="text-muted" style={{ fontSize: 12, marginTop: 4 }}>{A.walletsLabel}: {u.wallets.map((w) => `${w.balance.toLocaleString()} ${w.currency}`).join(" · ")}</div>}
                   </div>
@@ -221,7 +223,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
                     <div className="field">
                       <label>{A.kyc}</label>
                       <select className="input" value={draft.kyc} onChange={(e) => setDraft({ ...draft, kyc: e.target.value as StaffUser["kycStatus"] })}>
-                        <option value="unverified">unverified</option><option value="submitted">submitted</option><option value="verified">verified</option>
+                        <option value="unverified">{tx("unverified")}</option><option value="submitted">{tx("submitted")}</option><option value="verified">{tx("verified")}</option>
                       </select>
                     </div>
                     <div style={{ display: "flex", alignItems: "flex-end" }}>

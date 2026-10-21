@@ -1,3 +1,4 @@
+import { useT } from "../lib/extra-copy";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Locale } from "../types.ts";
 import {
@@ -58,6 +59,7 @@ export function MfaStepUpHost({ locale }: { locale: Locale }) {
 
 /** Settings → Security card: real enrolment/removal, same factor the App uses. */
 export function MfaSettingsCard({ locale, recommend, onMessage }: { locale: Locale; recommend?: boolean; onMessage: (m: string) => void }) {
+  const tx = useT();
   const C = mfaCopy(locale);
   const [factors, setFactors] = useState<TotpFactor[] | null>(null);
   const [enrol, setEnrol] = useState<{ factorId: string; qrCode: string; secret: string } | null>(null);
@@ -92,7 +94,7 @@ export function MfaSettingsCard({ locale, recommend, onMessage }: { locale: Loca
       {enrol && (
         <div style={{ display: "grid", gap: 10, justifyItems: "center" }}>
           <p className="card-body">{C.scanQr}</p>
-          <img src={enrol.qrCode} alt="TOTP QR code" width={160} height={160} style={{ background: "#fff", padding: 8, borderRadius: 8 }} />
+          <img src={enrol.qrCode} alt={tx("TOTP QR code")} width={160} height={160} style={{ background: "#fff", padding: 8, borderRadius: 8 }} />
           <p className="card-body" style={{ wordBreak: "break-all", textAlign: "center" }}>{C.orEnterSecret} <code>{enrol.secret}</code></p>
           <MfaCodeForm label={C.verify} busy={busy} error={error} onSubmit={async (code) => {
             setBusy(true);

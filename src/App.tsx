@@ -26,6 +26,7 @@ import { myMemberships } from "./lib/org.ts";
 import { needsMfaChallenge } from "./lib/mfa.ts";
 import { MfaGate } from "./screens/MfaGate.tsx";
 import { MfaStepUpHost, StaffMfaGate } from "./components/Mfa.tsx";
+import { LocaleContext } from "./lib/extra-copy.tsx";
 
 type Stage = "partners" | "newReceiver" | "pickup" | "mfa" | "send" | "organisation" | "landing" | "welcome" | "register" | "profile" | "kyc" | "app" | "config" | "admin" | "settings" | "registerCustomer";
 type AuthSession = { user: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null;
@@ -57,6 +58,7 @@ export default function App() {
   const [rangeIx, setRangeIx] = useState(0);
   const [filterIx, setFilterIx] = useState(0);
   const [locale, setLocale] = useState<Locale>("en");
+  useEffect(() => { document.documentElement.lang = locale; }, [locale]);
 
   const D = DESK[locale];
 
@@ -228,6 +230,7 @@ export default function App() {
   }
 
   return (
+    <LocaleContext.Provider value={locale}>
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
       <EnvBanner />
       <MfaStepUpHost locale={locale} />
@@ -363,5 +366,6 @@ export default function App() {
         <RegisterCustomer D={D} locale={locale} setLocale={setLocale} onBack={goBack} onLogoClick={goToLogo} />
       )}
     </div>
+    </LocaleContext.Provider>
   );
 }
