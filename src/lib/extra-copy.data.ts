@@ -432,4 +432,7 @@ export const EXTRA: Record<string, Entry> = {
   "balance correction": { fr: "correction de solde", pt: "correção de saldo", es: "corrección de saldo" },
   "profile change": { fr: "modification de profil", pt: "alteração de perfil", es: "cambio de perfil" },
   "general": { fr: "général", pt: "geral", es: "general" },
+  "A new version is available": { fr: "Une nouvelle version est disponible", pt: "Está disponível uma nova versão", es: "Hay una nueva versión disponible" },
+  "Refresh": { fr: "Actualiser", pt: "Atualizar", es: "Actualizar" },
+  "Later": { fr: "Plus tard", pt: "Mais tarde", es: "Más tarde" },
 };

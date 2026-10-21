@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import EnvBanner from "./components/EnvBanner";
 import SkipLink from "./components/SkipLink";
+import UpdatePrompt from "./components/UpdatePrompt";
 import type { Locale, Role } from "./types.ts";
 import { DESK } from "./i18n.ts";
 import { supabase } from "./lib/supabase-client.ts";
@@ -235,6 +236,7 @@ export default function App() {
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
       {(stage === "landing" || stage === "welcome") && <SkipLink />}
       <EnvBanner />
+      <UpdatePrompt />
       <MfaStepUpHost locale={locale} />
       {stage === "landing" && (
         <Landing
