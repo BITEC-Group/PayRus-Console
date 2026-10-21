@@ -1,5 +1,6 @@
 import type { Desk, Locale } from "../types.ts";
 import { LocaleMenu, PayRusLogo } from "../components/parts.tsx";
+import InstallButton from "../components/InstallButton.tsx";
 
 // Same --auth-* visual language as Welcome/Onboarding (borrowed from App/'s
 // login module) — this is the console's public entry point, so it should
@@ -35,6 +36,7 @@ export function Landing({
             <PayRusLogo size={150} onClick={onLogoClick} alt={D.logoAlt} homeLabel={D.logoHomeLabel} />
           </div>
         </div>
+        <InstallButton variant="auth" />
         <LocaleMenu value={locale} onChange={setLocale} variant="auth" />
         <button
           type="button"

@@ -95,6 +95,7 @@ export const EXTRA: Record<string, Entry> = {
   "Margin flat EUR": { fr: "Marge fixe EUR", pt: "Margem fixa EUR", es: "Margen fijo EUR" },
   "Margin %": { fr: "Marge %", pt: "Margem %", es: "Margen %" },
   "PayRus Ops": { fr: "PayRus Ops", pt: "PayRus Ops", es: "PayRus Ops" },
+  "Install app": { fr: "Installer l'application", pt: "Instalar a aplicação", es: "Instalar la aplicación" },
   "Skip to main content": { fr: "Aller au contenu principal", pt: "Saltar para o conteúdo principal", es: "Saltar al contenido principal" },
   // catalog names stored in English by the database: shown with tx(<value>), so scripts/check-i18n.mjs treats everything below as dynamic
   "Individual": { fr: "Particulier", pt: "Particular", es: "Particular" },

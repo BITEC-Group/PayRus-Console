@@ -1,4 +1,5 @@
 import { useT } from "../lib/extra-copy";
+import InstallButton from "../components/InstallButton.tsx";
 import { useEffect, useState } from "react";
 import type { Desk, LedgerRow, Locale, Role, TabKey } from "../types.ts";
 import { TAB_KEYS, fmtNum } from "../data.ts";
@@ -170,6 +171,7 @@ export function Console({
           })}
         </div>
         <div className="pr-ids">
+          <InstallButton variant="console" />
           <LocaleMenu value={locale} onChange={setLocale} variant="console" />
           <FxPill S={D.settings} userId={userId} />
           <span className="tag tag-outline" style={{ whiteSpace: "nowrap" }}>

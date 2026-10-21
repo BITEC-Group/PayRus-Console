@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
+import InstallButton from "../components/InstallButton.tsx";
 import { supabase } from "../lib/supabase-client.ts";
 import { resolveEmailByIdentifier } from "../lib/identity.ts";
 import { OAUTH_PROVIDERS, signInWithOAuthProvider, type OAuthProviderId } from "../lib/supabase-providers.ts";
@@ -219,7 +220,10 @@ export function Welcome({
     >
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-4) var(--space-6)" }}>
         <BackButton label={D.back} onClick={onBack} />
-        <LocaleMenu value={locale} onChange={setLocale} variant="auth" />
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+          <InstallButton variant="auth" />
+          <LocaleMenu value={locale} onChange={setLocale} variant="auth" />
+        </div>
       </header>
 
       <main id="main" tabIndex={-1} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--space-6)", padding: "var(--space-4) var(--space-6) var(--space-8)", maxWidth: 460, width: "100%", boxSizing: "border-box", margin: "0 auto" }}>
