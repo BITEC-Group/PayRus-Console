@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useT } from "../lib/extra-copy";
+import { copyLink, detectInstallPlatform, shareOrCopyLink } from "../lib/installPlatform.ts";
 
 // Chrome, Edge and Samsung Internet (desktop and Android) fire beforeinstallprompt once, possibly before React
 // has mounted, so it is captured at module load and shared with every button.
-// iPhones and iPads (every iOS browser) have no such event: installing there is "Share > Add to Home Screen",
-// so the button opens a short how-to instead.
+// Safari (iPhone, iPad and Mac) has no such event: installing there goes through its own menus, so the button opens
+// a how-to whose main button starts the part a website can start (the system Share sheet, or copying the link).
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: "accepted" | "dismissed" }> };
 let deferred: InstallEvent | null = null;
 const listeners = new Set<() => void>();
@@ -26,15 +27,14 @@ const isInstalled = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(display-mode: standalone)").matches === true || window.matchMedia?.("(display-mode: window-controls-overlay)").matches === true || (navigator as Navigator & { standalone?: boolean }).standalone === true);
 
-// iPadOS 13+ reports itself as a Mac, so touch support tells them apart.
-const isIos = () => typeof navigator !== "undefined" && (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
 /** "Install app": offers the console as an app. Renders nothing when the browser cannot install it or it is already installed. */
 export default function InstallButton({ variant }: { variant: "auth" | "console" }) {
   const tx = useT();
   const [, force] = useState(0);
   const [help, setHelp] = useState(false);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
+  const actionRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const l = () => force((n) => n + 1);
     listeners.add(l);
@@ -42,13 +42,15 @@ export default function InstallButton({ variant }: { variant: "auth" | "console"
   }, []);
   useEffect(() => {
     if (!help) return;
-    closeRef.current?.focus();
+    setStatus(null);
+    actionRef.current?.focus();
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setHelp(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [help]);
 
-  if (isInstalled() || (!deferred && !isIos())) return null;
+  const platform = detectInstallPlatform();
+  if (isInstalled() || (!deferred && platform === "none")) return null;
 
   const install = async () => {
     const event = deferred;
@@ -58,6 +60,26 @@ export default function InstallButton({ variant }: { variant: "auth" | "console"
     if (outcome === "accepted") deferred = null; // the browser only allows one prompt per event
     notify();
   };
+
+  // The main button of the how-to. iPhone/iPad: the Share sheet lists "Add to Home Screen" (and "Open in Safari" from
+  // in-app browsers). Mac: nothing can open the File menu, so the link is copied for sharing or reopening in Safari.
+  const canShare = platform !== "mac-safari" && typeof navigator.share === "function";
+  const act = async () => {
+    setBusy(true);
+    setStatus(null);
+    const url = window.location.href.split("#")[0];
+    const result = canShare ? await shareOrCopyLink({ title: "PayRus", text: tx("Install PayRus on your device"), url }) : await copyLink(url);
+    setBusy(false);
+    if (result === "shared") setHelp(false);
+    else if (result === "copied") setStatus({ ok: true, text: tx("Link copied") });
+    else if (result === "failed") setStatus({ ok: false, text: tx("Couldn't open the Share menu. Copy the link from the address bar instead.") });
+  };
+
+  const mac = platform === "mac-safari";
+  const steps = mac
+    ? [tx("In the menu bar, open the File menu."), tx("Choose “Add to Dock…”."), tx("Click Add. PayRus then opens like an app from your Dock.")]
+    : [tx("Tap the Share button in the browser toolbar."), tx("Choose “Add to Home Screen”."), tx("Tap Add. PayRus then opens like an app from your home screen.")];
+  const intro = platform === "ios-inapp" ? tx("This in-app browser cannot install apps. Open this page in Safari first (Share menu > “Open in Safari”, or copy the link), then follow these steps.") : null;
 
   return (
     <>
@@ -88,17 +110,25 @@ export default function InstallButton({ variant }: { variant: "auth" | "console"
             onClick={(e) => e.stopPropagation()}
             style={{ width: "100%", maxWidth: 420, boxSizing: "border-box", background: "#fff", color: "var(--auth-navy)", borderRadius: 20, padding: 20, display: "grid", gap: 12, boxShadow: "0 20px 50px rgba(10,42,74,0.3)", marginBottom: "env(safe-area-inset-bottom)" }}
           >
-            <strong id="install-help-title" style={{ fontSize: 17 }}>{tx("Add this app to your home screen")}</strong>
+            <strong id="install-help-title" style={{ fontSize: 17 }}>{mac ? tx("Add this app to your Dock") : tx("Add this app to your home screen")}</strong>
+            {intro && <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--auth-body)" }}>{intro}</p>}
             <ol style={{ margin: 0, paddingLeft: 20, display: "grid", gap: 8, fontSize: 14, lineHeight: 1.5, color: "var(--auth-body)" }}>
-              <li>{tx("Tap the Share button in the browser toolbar.")}</li>
-              <li>{tx("Choose “Add to Home Screen”.")}</li>
-              <li>{tx("Tap Add. PayRus then opens like an app from your home screen.")}</li>
+              {steps.map((s) => <li key={s}>{s}</li>)}
             </ol>
             <button
-              ref={closeRef}
+              ref={actionRef}
+              type="button"
+              disabled={busy}
+              onClick={() => void act()}
+              style={{ border: 0, borderRadius: 12, padding: "12px 16px", fontWeight: 700, fontSize: 14, cursor: busy ? "default" : "pointer", opacity: busy ? 0.6 : 1, background: "var(--auth-navy)", color: "#fff" }}
+            >
+              {canShare ? tx("Open the Share menu") : tx("Copy link")}
+            </button>
+            <div role="status" aria-live="polite" style={{ minHeight: 18, fontSize: 13, fontWeight: 600, color: status?.ok === false ? "#B3263E" : "var(--auth-teal)" }}>{status?.text ?? ""}</div>
+            <button
               type="button"
               onClick={() => setHelp(false)}
-              style={{ border: 0, borderRadius: 12, padding: "12px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", background: "var(--auth-navy)", color: "#fff" }}
+              style={{ border: "1px solid var(--auth-border)", borderRadius: 12, padding: "12px 16px", fontWeight: 700, fontSize: 14, cursor: "pointer", background: "#fff", color: "var(--auth-navy)" }}
             >
               {tx("Close")}
             </button>
