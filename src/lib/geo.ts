@@ -207,3 +207,29 @@ export function currencyForCountry(countryCode: string): string {
 export function callingCodeForCountry(countryCode: string): string {
   return COUNTRY_OPTIONS.find((c) => c.code === countryCode)?.callingCode ?? "";
 }
+
+export interface LocalizedCountryOption extends CountryOption {
+  label: string;
+}
+
+const optionsByLocale = new Map<string, LocalizedCountryOption[]>();
+
+/**
+ * The country list for a dropdown in the active language, in that language's alphabetical order.
+ * English keeps the names above exactly as written; other languages use the browser's own region names
+ * (Intl.DisplayNames), falling back to the English name where a browser lacks one.
+ */
+export function countryOptionsFor(locale: string): LocalizedCountryOption[] {
+  const cached = optionsByLocale.get(locale);
+  if (cached) return cached;
+  let names: Intl.DisplayNames | null = null;
+  if (locale !== "en") {
+    try { names = new Intl.DisplayNames([locale], { type: "region" }); } catch { names = null; }
+  }
+  const collator = new Intl.Collator(locale);
+  const list = COUNTRY_OPTIONS
+    .map((c) => ({ ...c, label: (names?.of(c.code) ?? c.name) || c.name }))
+    .sort((a, b) => collator.compare(a.label, b.label));
+  optionsByLocale.set(locale, list);
+  return list;
+}

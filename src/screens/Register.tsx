@@ -3,7 +3,7 @@ import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
 import { supabase } from "../lib/supabase-client.ts";
 import { OAUTH_PROVIDERS, signInWithOAuthProvider, type OAuthProviderId } from "../lib/supabase-providers.ts";
-import { COUNTRY_OPTIONS, callingCodeForCountry } from "../lib/geo.ts";
+import { callingCodeForCountry, countryOptionsFor } from "../lib/geo.ts";
 import { citiesForCountry, provincesForCountry } from "../lib/address.ts";
 import { suggestPostalCodes, suggestStreets, type PostalCodeSuggestion } from "../lib/addressSuggestions.ts";
 import { getBrowserPosition, reverseGeocode } from "../lib/location.ts";
@@ -277,8 +277,8 @@ export function Register({
                 style={fieldStyle}
               >
                 <option value="" disabled>{R.countryPlaceholder}</option>
-                {COUNTRY_OPTIONS.map((c) => (
-                  <option key={c.code} value={c.code}>{c.name} ({c.currency})</option>
+                {countryOptionsFor(locale).map((c) => (
+                  <option key={c.code} value={c.code}>{c.label} ({c.currency})</option>
                 ))}
               </select>
             </div>

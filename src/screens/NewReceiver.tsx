@@ -5,7 +5,7 @@ import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
 import { requireStepUp } from "../lib/mfa.ts";
 import { mfaCopy } from "../components/Mfa.tsx";
 import { geocodeAddress } from "../lib/geocode.ts";
-import { COUNTRY_OPTIONS, callingCodeForCountry, currencyForCountry } from "../lib/geo.ts";
+import { callingCodeForCountry, countryOptionsFor, currencyForCountry } from "../lib/geo.ts";
 import {
   ensureDemoAgentsNear, getChannelOptions, getChannelQuote, findPayoutAgents, listPickupPoints, listOpenCorridors, getPayoutOptions, listMyPayouts, listMyReceivers, loadSendContext, resolveRecipient, sendToNewReceiver,
   type ChannelOption, type ChannelQuote, type PayoutAgent, type PayoutMethod, type PayoutOption, type PayoutReceipt, type PayoutRow, type Receiver, type Recipient, type SendContext,
@@ -229,7 +229,7 @@ export function NewReceiver({ D, locale, setLocale, userId, onBack, onLogoClick,
                 {field("nr-email", R.email, <input id="nr-email" className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />)}
                 {field("nr-country", R.country, (
                   <select id="nr-country" className="input" value={country} onChange={(e) => setCountry(e.target.value)}>
-                    <option value="">—</option>{COUNTRY_OPTIONS.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+                    <option value="">—</option>{countryOptionsFor(locale).map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
                   </select>
                 ))}
                 {field("nr-city", R.city, <input id="nr-city" className="input" value={city} onChange={(e) => setCity(e.target.value)} />)}
