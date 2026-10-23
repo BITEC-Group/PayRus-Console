@@ -30,6 +30,39 @@ export function noteText(tx: TX, note: string): string {
   return note;
 }
 
+const NOTE_TITLES = new Set([
+  "Deposit received", "Currency converted", "Remittance sent", "Transfer sent", "Payment sent", "Payout sent", "Transaction completed", "Transaction updated",
+  "Transaction cancelled", "Card issued", "Wallet created", "Payment link paid", "Cash picked up", "Money delivered", "Account restricted",
+  "Added to a workspace", "Sensitive data accessed (break-glass)", "Second notice recorded", "Escalation rejected",
+]);
+const NOTIF_BODIES: [RegExp, string, (m: RegExpMatchArray) => Record<string, string>][] = [
+  [/^([A-Z]{3}) ([\d.,]+) added to your wallet$/, "{{currency}} {{amount}} added to your wallet", (m) => ({ currency: m[1], amount: m[2] })],
+  [/^([A-Z]{3}) ([\d.,]+) converted to ([A-Z]{3})$/, "{{currency}} {{amount}} converted to {{to}}", (m) => ({ currency: m[1], amount: m[2], to: m[3] })],
+  [/^([A-Z]{3}) ([\d.,]+) sent$/, "{{currency}} {{amount}} sent", (m) => ({ currency: m[1], amount: m[2] })],
+  [/^Your virtual card ending (\d{4}) is ready\.$/, "Your virtual card ending {{last4}} is ready.", (m) => ({ last4: m[1] })],
+  [/^Your ([A-Z]{3}) wallet is ready\. Top it up to start using it\.$/, "Your {{currency}} wallet is ready. Top it up to start using it.", (m) => ({ currency: m[1] })],
+  [/^Sending from your wallet is temporarily restricted\.$/, "Sending from your wallet is temporarily restricted.", () => ({})],
+  [/^(INV-[\w-]+) · (.+) is (\d+) days overdue \(([\d.,]+) ([A-Z]{3})\)\.$/, "{{ref}} · {{name}} is {{days}} days overdue ({{amount}} {{currency}}).", (m) => ({ ref: m[1], name: m[2], days: m[3], amount: m[4], currency: m[5] })],
+];
+
+/** A notification the backend wrote ("USD 787.71 added to your wallet") in the active language; any other text is shown as written. */
+export function notificationText(tx: TX, n: { title: string; body: string }): { title: string; body: string } {
+  let title = n.title;
+  let body = n.body;
+  const welcome = n.title.match(/^Welcome to PayRus, (.+)!$/);
+  if (welcome) title = tx("Welcome to PayRus, {{name}}!", { name: welcome[1] });
+  else if (NOTE_TITLES.has(n.title)) title = tx(n.title);
+  const rejected = n.body.match(/^Your escalation \((.+)\) was rejected: (.+)$/);
+  if (rejected) body = tx("Your escalation ({{kind}}) was rejected: {{reason}}", { kind: wordText(tx, rejected[1]), reason: rejected[2] });
+  else {
+    for (const [re, key, params] of NOTIF_BODIES) {
+      const m = n.body.match(re);
+      if (m) { body = tx(key, params(m)); break; }
+    }
+  }
+  return { title, body };
+}
+
 const AUDIT_TABLES: Record<string, string> = {
   user_roles: "User roles", users: "Users", transfers: "Transfers", support_escalations: "Support escalations", support_permissions: "Support permissions",
   gate_passwords: "Gate passwords", profile_features: "Profile features", console_role_tabs: "Console role tabs", fx_margin_config: "FX margin settings",

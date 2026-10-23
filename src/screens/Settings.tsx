@@ -1,5 +1,6 @@
 import { useT } from "../lib/extra-copy";
 import { roleLabel } from "../lib/roleLabel.ts";
+import { notificationText } from "../lib/dbText.ts";
 import { useCallback, useEffect, useState } from "react";
 import type { Desk, Locale } from "../types.ts";
 import { BackButton, LocaleMenu, PayRusLogo } from "../components/parts.tsx";
@@ -188,16 +189,16 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
           <div style={{ display: "grid", gap: "var(--space-3)" }}>
             {notes === null && <div className="tag tag-neutral">{S.loading}</div>}
             {notes && notes.length === 0 && <div className="text-muted">{S.noNotifications}</div>}
-            {notes?.map((n) => (
+            {notes?.map((n) => { const text = notificationText(tx, n); return (
               <div key={n.id} className="card elev-sm" style={{ gap: 4 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-                  <strong>{n.title}{!n.read && <span className="tag tag-accent" style={{ marginLeft: 8 }}>{S.unread}</span>}</strong>
+                  <strong>{text.title}{!n.read && <span className="tag tag-accent" style={{ marginLeft: 8 }}>{S.unread}</span>}</strong>
                   <span className="text-muted" style={{ fontSize: 12 }}>{new Date(n.createdAt).toLocaleString()}</span>
                 </div>
-                <div>{n.body}</div>
+                <div>{text.body}</div>
                 {!n.read && <div><button type="button" className="btn btn-ghost" onClick={() => void markNotificationRead(n.id).then(reload).catch(fail)}>{S.markRead}</button></div>}
               </div>
-            ))}
+            ); })}
           </div>
         )}
 
