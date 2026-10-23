@@ -5,7 +5,7 @@ import UpdatePrompt from "./components/UpdatePrompt";
 import type { Locale, Role } from "./types.ts";
 import { DESK } from "./i18n.ts";
 import { supabase } from "./lib/supabase-client.ts";
-import { upsertSupabaseUser, listUserRoles, grantAdminRole } from "./lib/identity.ts";
+import { upsertSupabaseUser, listUserRoles, grantAdminRole, subjectOf } from "./lib/identity.ts";
 import { dbRoleToConsoleRole, isAdminDbRole, loadRoleDefinitions } from "./lib/roleMapping.ts";
 import { Landing } from "./screens/Landing.tsx";
 import { Register } from "./screens/Register.tsx";
@@ -88,7 +88,7 @@ export default function App() {
     try {
       const meta = session.user.user_metadata ?? {};
       const name = (typeof meta.full_name === "string" && meta.full_name) || (typeof meta.name === "string" && meta.name) || undefined;
-      const { userId: resolvedUserId } = await upsertSupabaseUser({ supabaseUserId: session.user.id, email: session.user.email, name });
+      const { userId: resolvedUserId } = await upsertSupabaseUser({ supabaseUserId: subjectOf(session), email: session.user.email, name });
       setUserId(resolvedUserId);
       const roles = await listUserRoles(resolvedUserId);
       await loadRoleDefinitions();

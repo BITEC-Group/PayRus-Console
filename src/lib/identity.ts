@@ -90,3 +90,6 @@ export async function upsertUserRole(args: {
   const row = mustHaveData(res, "upsertUserRole") as Record<string, unknown>;
   return row.id as string;
 }
+
+// PRS-IAM-008: the auth provider user id is read only in this identity layer.
+export const subjectOf = (session: { user: { id: string } }): string => session.user.id;
