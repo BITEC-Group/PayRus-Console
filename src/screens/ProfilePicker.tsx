@@ -10,23 +10,24 @@ export function ProfilePicker({
   onBack,
   onPick,
   onPickAdmin,
+  showAdmin,
 }: {
   D: Desk;
   onBack: () => void;
   onPick: (role: Role) => void;
-  onPickAdmin: (password: string) => Promise<void>;
+  onPickAdmin: () => Promise<void>;
+  showAdmin: boolean;
 }) {
   const tx = useT();
-  const [adminPassword, setAdminPassword] = useState("");
   const [adminBusy, setAdminBusy] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
 
   const unlockAdmin = async () => {
-    if (!adminPassword || adminBusy) return;
+    if (adminBusy) return;
     setAdminBusy(true);
     setAdminError(null);
     try {
-      await onPickAdmin(adminPassword);
+      await onPickAdmin();
     } catch {
       setAdminError(D.adminWrongPassword);
     } finally {
@@ -65,27 +66,19 @@ export function ProfilePicker({
               </div>
             </div>
           ))}
+          {showAdmin && (
           <div className="card elev-sm">
             <div className="card-kicker">{D.roleLabel}</div>
             <div className="card-title">{D.adminRoleTitle}</div>
             <div className="card-body">{D.adminRoleNote}</div>
             <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "var(--space-3)", flexWrap: "wrap" }}>
-              <input
-                id="admin-role-password"
-                type="password"
-                className="input"
-                style={{ flex: 1, minWidth: 140 }}
-                value={adminPassword}
-                placeholder={D.adminPasswordLabel}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") void unlockAdmin(); }}
-              />
-              <button type="button" className="btn btn-primary" disabled={adminBusy || !adminPassword} onClick={() => void unlockAdmin()}>
+              <button type="button" className="btn btn-primary" disabled={adminBusy} onClick={() => void unlockAdmin()}>
                 {D.adminUnlock}
               </button>
             </div>
             {adminError && <div className="tag tag-accent" style={{ marginTop: "var(--space-2)" }}>{adminError}</div>}
           </div>
+          )}
         </div>
       )}
     </div>

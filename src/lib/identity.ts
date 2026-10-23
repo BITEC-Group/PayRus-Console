@@ -47,12 +47,7 @@ export async function resolveEmailByIdentifier(identifier: string): Promise<stri
   return (res.data as string | null) ?? null;
 }
 
-// Password-gated (gate 'admin' in gate_passwords, checked server-side by
-// admin_grant_admin_role) — the only way to obtain the admin role here.
-export async function grantAdminRole(userId: string, password: string): Promise<void> {
-  const res = await supabase.rpc("admin_grant_admin_role", { p_user_id: userId, p_password: password });
-  if (res.error) throw new Error(res.error.message);
-}
+// (No grantAdminRole here: admin is granted only by an existing admin through the two-person approval in the Admin screen.)
 
 export async function listUserRoles(userId: string): Promise<UserRole[]> {
   const res = await supabase.from("user_roles").select("*").eq("user_id", userId);
@@ -93,3 +88,16 @@ export async function upsertUserRole(args: {
 
 // PRS-IAM-008: the auth provider user id is read only in this identity layer.
 export const subjectOf = (session: { user: { id: string } }): string => session.user.id;
+
+// PRS-KYC-007: the owner submits the organisation's owners (UBOs) and authorised representative.
+export async function submitKybParties(args: {
+  userId: string; roleId: string; declaredOwners: number;
+  parties: { type: "ubo" | "authorised_rep"; name: string; ownershipPct?: number }[];
+}): Promise<string[]> {
+  const res = await supabase.rpc("kyb_submit_parties", {
+    p_user_id: args.userId, p_role_id: args.roleId, p_declared_ubo_count: args.declaredOwners,
+    p_parties: args.parties.map((p) => ({ type: p.type, name: p.name, ownership_pct: p.ownershipPct ?? null })),
+  });
+  if (res.error) throw new Error(res.error.message);
+  return (res.data as string[] | null) ?? [];
+}

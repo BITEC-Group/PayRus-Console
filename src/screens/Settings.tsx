@@ -308,7 +308,8 @@ export function Settings({ D, locale, setLocale, userId, onBack, onLogoClick }: 
               <div className="text-muted" style={{ fontSize: 11 }}>{S.fxAttribution}</div>
             </div>
             <div className="card elev-sm" style={{ gap: 4 }}>
-              {row(S.version, tx("PayRus Ops"))}
+              {row(S.version, tx("PayRus Ops") + " " + __APP_VERSION__)}
+              {row(tx("Build"), __APP_COMMIT__)}
             </div>
           </div>
         )}

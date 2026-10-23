@@ -284,3 +284,26 @@ export async function runTriage(escalationId: string): Promise<{ suggestion: AiS
   if (r.error || !r.data) throw new Error(r.error?.message ?? "triage failed");
   return { suggestion: toSuggestion(r.data as Record<string, unknown>), via: "rules", fallbackReason };
 }
+
+// ---- Two-person admin grants (PRS-ADM-002 / IAM-007): request, list, approve ----
+export interface PendingAdminGrant { id: string; targetName: string | null; targetEmail: string | null; requestedByName: string | null; createdAt: string }
+
+export async function requestAdminGrant(userId: string, password: string): Promise<string | null> {
+  const res = await supabase.rpc("admin_request_admin_grant", { p_user_id: userId, p_password: password });
+  if (res.error) throw new Error(res.error.message);
+  return (res.data as string | null) ?? null; // null = refused (audited server-side)
+}
+
+export async function listPendingAdminGrants(): Promise<PendingAdminGrant[]> {
+  const res = await supabase.rpc("admin_pending_grants");
+  if (res.error) throw new Error(res.error.message);
+  return ((res.data ?? []) as Record<string, unknown>[]).map((r) => ({
+    id: r.id as string, targetName: (r.target_name as string) ?? null, targetEmail: (r.target_email as string) ?? null,
+    requestedByName: (r.requested_by_name as string) ?? null, createdAt: r.created_at as string,
+  }));
+}
+
+export async function approveAdminGrant(requestId: string, password: string): Promise<void> {
+  const res = await supabase.rpc("admin_approve_admin_grant", { p_request_id: requestId, p_password: password });
+  if (res.error) throw new Error(res.error.message);
+}

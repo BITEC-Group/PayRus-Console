@@ -5,7 +5,7 @@ import UpdatePrompt from "./components/UpdatePrompt";
 import type { Locale, Role } from "./types.ts";
 import { DESK } from "./i18n.ts";
 import { supabase } from "./lib/supabase-client.ts";
-import { upsertSupabaseUser, listUserRoles, grantAdminRole, subjectOf } from "./lib/identity.ts";
+import { upsertSupabaseUser, listUserRoles, subjectOf } from "./lib/identity.ts";
 import { dbRoleToConsoleRole, isAdminDbRole, loadRoleDefinitions } from "./lib/roleMapping.ts";
 import { Landing } from "./screens/Landing.tsx";
 import { Register } from "./screens/Register.tsx";
@@ -58,6 +58,7 @@ export default function App() {
   const [memberPreselect, setMemberPreselect] = useState<Recipient | null>(null);
   const [tabIx, setTabIx] = useState(0);
   const [rangeIx, setRangeIx] = useState(0);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
   const [filterIx, setFilterIx] = useState(0);
   const [locale, setLocale] = useState<Locale>("en");
   useEffect(() => { document.documentElement.lang = locale; }, [locale]);
@@ -91,6 +92,7 @@ export default function App() {
       const { userId: resolvedUserId } = await upsertSupabaseUser({ supabaseUserId: subjectOf(session), email: session.user.email, name });
       setUserId(resolvedUserId);
       const roles = await listUserRoles(resolvedUserId);
+      setHasAdminRole(roles.some((r) => isAdminDbRole(r.role) && r.status === "verified"));
       await loadRoleDefinitions();
       if (roles.length === 1) {
         setProfile(dbRoleToConsoleRole(roles[0].role));
@@ -174,11 +176,11 @@ export default function App() {
     go("kyc");
   }
 
-  // Password-checked server-side (gate 'admin'); a wrong password throws and
-  // the picker shows the error. Success = App/'s isAdmin bypass.
-  async function pickAdmin(password: string) {
-    if (!userId) throw new Error("not signed in");
-    await grantAdminRole(userId, password);
+  // PRS-IAM-007 / ADM-001 / ADM-002: there is no self-service admin unlock. The admin workspace opens only for an account
+  // that ALREADY holds a verified admin role (granted by another admin and approved by a second one), and the
+  // staff screens themselves still demand an AAL2 session.
+  async function pickAdmin() {
+    if (!userId || !hasAdminRole) throw new Error("not an administrator");
     await loadRoleDefinitions();
     setProfile(dbRoleToConsoleRole("admin"));
     setIsAdmin(true);
@@ -274,7 +276,7 @@ export default function App() {
       )}
 
       {stage === "profile" && (
-        <ProfilePicker D={D} onBack={goBack} onPick={pickRole} onPickAdmin={pickAdmin} />
+        <ProfilePicker D={D} onBack={goBack} onPick={pickRole} onPickAdmin={pickAdmin} showAdmin={hasAdminRole} />
       )}
 
       {stage === "mfa" && (

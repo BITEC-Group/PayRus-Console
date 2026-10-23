@@ -11,6 +11,7 @@ import {
   updateRoleStatus,
 } from "../lib/adminStaff.ts";
 import { AccessTab, AddProfile, AuditTab, GatePassword } from "./AdminExtras.tsx";
+import { AdminGrants } from "./AdminGrants.tsx";
 import { EscalationsTab } from "./AdminEscalations.tsx";
 import { RemittanceTab } from "./AdminRemittance.tsx";
 import { InstitutionsTab } from "./AdminInstitutions.tsx";
@@ -303,6 +304,7 @@ export function Admin({ D, locale, setLocale, onBack, onLogoClick }: {
         {tab === "escalations" && <EscalationsTab A={A} perms={perms} notify={setMessage} />}
 
         {tab === "access" && perms?.isAdmin && <AccessTab A={A} users={users ?? []} notify={setMessage} reload={reload} />}
+        {tab === "access" && perms?.isAdmin && <AdminGrants notify={setMessage} />}
         {tab === "audit" && perms?.isAdmin && <AuditTab A={A} />}
         {tab === "institutions" && perms?.isAdmin && <InstitutionsTab locale={locale} />}
         {tab === "travel" && perms?.isAdmin && <TravelTab locale={locale} />}
