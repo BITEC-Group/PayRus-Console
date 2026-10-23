@@ -222,13 +222,15 @@ const optionsByLocale = new Map<string, LocalizedCountryOption[]>();
 export function countryOptionsFor(locale: string): LocalizedCountryOption[] {
   const cached = optionsByLocale.get(locale);
   if (cached) return cached;
+  // The Console's Portuguese is European (Palavra-passe, Registar), so country names follow it: Arménia, not Armênia.
+  const tag = locale === "pt" ? "pt-PT" : locale;
   let names: Intl.DisplayNames | null = null;
   if (locale !== "en") {
-    try { names = new Intl.DisplayNames([locale], { type: "region" }); } catch { names = null; }
+    try { names = new Intl.DisplayNames([tag], { type: "region" }); } catch { names = null; }
   }
-  const collator = new Intl.Collator(locale);
+  const collator = new Intl.Collator(tag);
   const list = COUNTRY_OPTIONS
-    .map((c) => ({ ...c, label: (names?.of(c.code) ?? c.name) || c.name }))
+    .map((c) => ({ ...c, label: (locale === "pt" && c.code === "CI" ? "Costa do Marfim" : names?.of(c.code) ?? c.name) || c.name }))
     .sort((a, b) => collator.compare(a.label, b.label));
   optionsByLocale.set(locale, list);
   return list;
